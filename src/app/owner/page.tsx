@@ -994,7 +994,7 @@ export default function OwnerDashboard() {
       setRegPassword('');
       setAuthMode('pending');
     } catch (err: any) {
-      console.error(err);
+      console.warn(err);
       alert('Đăng ký thất bại: ' + err.message);
     } finally {
       setLoading(false);
@@ -1106,7 +1106,7 @@ export default function OwnerDashboard() {
         setLoginPassword('');
       }
     } catch (err: any) {
-      console.error(err);
+      console.warn(err);
       alert('Đăng nhập thất bại: ' + err.message);
     } finally {
       setLoading(false);
