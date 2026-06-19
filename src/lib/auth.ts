@@ -1,5 +1,6 @@
 // src/lib/auth.ts
 // Mock Authentication Service for Rental Brokerage System Demo
+import { supabase } from './supabase';
 
 export interface AuthUser {
   id: string;
@@ -73,4 +74,7 @@ export function loginWithProfile(user: AuthUser) {
 
 export function logout() {
   loginAs('guest');
+  try {
+    supabase.auth.signOut().catch(err => console.warn('Supabase signOut error:', err));
+  } catch (e) {}
 }
