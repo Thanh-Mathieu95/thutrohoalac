@@ -8,7 +8,7 @@ CREATE TABLE public.profiles (
   phone TEXT,
   email TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('admin', 'owner')),
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+  status TEXT DEFAULT 'pending' CHECK (status IN ('active', 'inactive', 'pending', 'rejected')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
