@@ -86,24 +86,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin" className="flex items-center gap-3 px-5 py-3.5 bg-brand text-white rounded-2xl font-bold shadow-lg shadow-brand/20 transition-all">
             <LayoutDashboard className="w-5 h-5" /> Tổng quan
           </Link>
-          <Link href="/admin/rooms" className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/5 rounded-2xl font-bold text-gray-400 hover:text-white transition-all">
-            <Home className="w-5 h-5" /> Quản lý phòng
-          </Link>
-          <Link href="/admin/rooms/new" className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/5 rounded-2xl font-bold text-gray-400 hover:text-white transition-all">
-            <PlusCircle className="w-5 h-5" /> Đăng bài mới
-          </Link>
-          <Link href="/admin/poi" className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/5 rounded-2xl font-bold text-gray-400 hover:text-white transition-all">
-            <Map className="w-5 h-5" /> Điều chỉnh Map
-          </Link>
-          <Link href="/admin/revenue" className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/5 rounded-2xl font-bold text-gray-400 hover:text-white transition-all">
-            <DollarSign className="w-5 h-5" /> Doanh thu
-          </Link>
-          <div className="pt-6 pb-2 px-5">
-            <span className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Hệ thống</span>
-          </div>
-          <Link href="/admin/settings" className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/5 rounded-2xl font-bold text-gray-400 hover:text-white transition-all">
-            <Settings className="w-5 h-5" /> Cài đặt
-          </Link>
         </nav>
 
         <div className="p-4 border-t border-white/5">
