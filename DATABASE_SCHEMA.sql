@@ -28,6 +28,7 @@ CREATE POLICY "Allow public insert access to profiles"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
+  -- Insert into profiles table
   INSERT INTO public.profiles (id, name, phone, email, role, status)
   VALUES (
     new.id,
@@ -37,6 +38,12 @@ BEGIN
     'owner',
     'pending'
   );
+
+  -- Insert into owners table to satisfy foreign key constraints
+  INSERT INTO public.owners (id, note)
+  VALUES (new.id, '')
+  ON CONFLICT (id) DO NOTHING;
+
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

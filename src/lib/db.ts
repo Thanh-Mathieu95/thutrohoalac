@@ -805,7 +805,7 @@ export const db = {
     // Supabase
     try {
       if (await isSupabaseOnline()) {
-        const { error } = await supabase.from('profiles').upsert({
+        const { error: profileError } = await supabase.from('profiles').upsert({
           id: profile.id,
           name: profile.name,
           phone: profile.phone,
@@ -813,7 +813,14 @@ export const db = {
           role: 'owner',
           status: profile.status
         });
-        if (error) throw error;
+        if (profileError) throw profileError;
+
+        // Also upsert into public.owners table to satisfy foreign key constraints
+        const { error: ownerError } = await supabase.from('owners').upsert({
+          id: profile.id,
+          note: ''
+        });
+        if (ownerError) throw ownerError;
       }
     } catch (e) {
       console.warn('Error creating owner profile in Supabase:', e);
