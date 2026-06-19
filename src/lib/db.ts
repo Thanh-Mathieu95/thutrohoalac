@@ -187,7 +187,7 @@ export async function isSupabaseOnline(): Promise<boolean> {
   if (connectionChecked) return supabaseActive;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!url || url === 'https://your-supabase-url.supabase.co' || url.includes('your-supabase-url')) {
+  if (!url || url === 'https://your-supabase-url.supabase.co' || url.includes('your-supabase-url') || url.includes('placeholder-url')) {
     useLocalDB = true;
     connectionChecked = true;
     supabaseActive = false;
