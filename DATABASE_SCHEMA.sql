@@ -21,6 +21,30 @@ CREATE POLICY "Allow public read access to profiles"
 CREATE POLICY "Allow users to update their own profile"
   ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
+CREATE POLICY "Allow public insert access to profiles"
+  ON public.profiles FOR INSERT WITH CHECK (true);
+
+-- 1b. Auto-create profile trigger on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, name, phone, email, role, status)
+  VALUES (
+    new.id,
+    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    COALESCE(new.raw_user_meta_data->>'phone', ''),
+    new.email,
+    'owner',
+    'pending'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
 -- 2. Owners Table
 CREATE TABLE public.owners (
   id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,

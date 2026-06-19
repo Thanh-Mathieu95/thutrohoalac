@@ -49,7 +49,7 @@ async function uploadToSupabaseStorage(imagePath: string, pathPrefix: string): P
       });
 
     if (error) {
-      console.error('Failed to upload image to Supabase Storage:', error);
+      console.warn('Failed to upload image to Supabase Storage:', error);
       throw error;
     }
 
@@ -60,7 +60,7 @@ async function uploadToSupabaseStorage(imagePath: string, pathPrefix: string): P
 
     return publicUrl;
   } catch (err) {
-    console.error('Failed processing image upload:', err);
+    console.warn('Failed processing image upload:', err);
     return imagePath; // Fallback to raw path if anything throws
   }
 }
@@ -391,7 +391,7 @@ export const db = {
         if (!error && data) return data as BoardingHouseImage;
       }
     } catch (e) {
-      console.error('Error adding boarding house image:', e);
+      console.warn('Error adding boarding house image:', e);
     }
 
     const list = getCollection<BoardingHouseImage>('boarding_house_images');
@@ -553,7 +553,7 @@ export const db = {
         if (!error && data) return data as RoomTypeImage;
       }
     } catch (e) {
-      console.error('Error adding room type image:', e);
+      console.warn('Error adding room type image:', e);
     }
 
     const list = getCollection<RoomTypeImage>('room_type_images');
@@ -816,7 +816,7 @@ export const db = {
         if (error) throw error;
       }
     } catch (e) {
-      console.error('Error creating owner profile in Supabase:', e);
+      console.warn('Error creating owner profile in Supabase:', e);
       return false;
     }
     return true;

@@ -306,7 +306,7 @@ export default function OwnerDashboard() {
           }
         }
       } catch (err) {
-        console.error('Error checking Google session:', err);
+        console.warn('Error checking Google session:', err);
       }
     };
     checkGoogleUser();
@@ -1032,11 +1032,20 @@ export default function OwnerDashboard() {
 
         if (data.user) {
           // Get profile
-          const profile = await db.getProfileByEmail(data.user.email || emailLower);
+          let profile = await db.getProfileByEmail(data.user.email || emailLower);
           if (!profile) {
-            alert('Tài khoản chưa được khởi tạo hồ sơ.');
-            await supabase.auth.signOut();
-            return;
+            // Auto-create missing profile (e.g., if registered via Dashboard or before DB RLS was configured)
+            const newProfile: UserProfile = {
+              id: data.user.id,
+              name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || emailLower.split('@')[0],
+              phone: data.user.phone || data.user.user_metadata?.phone || '09xxxxxxxx',
+              email: emailLower,
+              role: 'owner',
+              status: 'pending',
+              created_at: new Date().toISOString()
+            };
+            await db.createOwnerProfile(newProfile);
+            profile = newProfile;
           }
 
           if (profile.status === 'pending') {
