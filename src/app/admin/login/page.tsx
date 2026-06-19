@@ -18,8 +18,11 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setIsLoading(true);
     
+    // Trim and lowercase email input
+    const emailTrimmed = email.trim().toLowerCase();
+    
     // 1. Check Demo Account
-    if (email === 'admin@salehung.com') {
+    if (emailTrimmed === 'admin@salehung.com') {
       loginAs('admin');
       router.push('/admin');
       router.refresh();
@@ -30,7 +33,7 @@ export default function AdminLoginPage() {
     // 2. Fallback to Supabase Auth
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: emailTrimmed,
         password,
       });
 

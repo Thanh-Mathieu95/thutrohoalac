@@ -1023,7 +1023,7 @@ export default function OwnerDashboard() {
       if (isOnline) {
         // Authenticate via Supabase Auth
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: loginEmail,
+          email: emailLower,
           password: loginPassword
         });
         if (error) {
@@ -1032,7 +1032,7 @@ export default function OwnerDashboard() {
 
         if (data.user) {
           // Get profile
-          const profile = await db.getProfileByEmail(data.user.email || loginEmail);
+          const profile = await db.getProfileByEmail(data.user.email || emailLower);
           if (!profile) {
             alert('Tài khoản chưa được khởi tạo hồ sơ.');
             await supabase.auth.signOut();
