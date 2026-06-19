@@ -1003,6 +1003,18 @@ export default function OwnerDashboard() {
 
     setLoading(true);
     try {
+      // 1. Bypass check for demo/mock accounts (so they always work even when online)
+      const emailLower = loginEmail.trim().toLowerCase();
+      if (emailLower === 'nam@gmail.com' || emailLower === 'lan@gmail.com') {
+        const roleKey = emailLower === 'nam@gmail.com' ? 'owner_nam' : 'owner_lan';
+        loginAs(roleKey as any);
+        setLoginEmail('');
+        setLoginPassword('');
+        setLoading(false);
+        alert(`Chào mừng quay lại (Demo)!`);
+        return;
+      }
+
       const isOnline = await db.isSupabaseActive();
       if (isOnline) {
         // Authenticate via Supabase Auth
