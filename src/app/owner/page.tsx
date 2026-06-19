@@ -936,10 +936,14 @@ export default function OwnerDashboard() {
     e.preventDefault();
     if (!regName || !regEmail || !regPhone || !regPassword) return;
 
+    const emailTrimmed = regEmail.trim().toLowerCase();
+    const nameTrimmed = regName.trim();
+    const phoneTrimmed = regPhone.trim();
+
     setLoading(true);
     try {
       // Check if email already registered
-      const existingProfile = await db.getProfileByEmail(regEmail);
+      const existingProfile = await db.getProfileByEmail(emailTrimmed);
       if (existingProfile) {
         alert('Email này đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác!');
         setAuthMode('login');
@@ -951,12 +955,12 @@ export default function OwnerDashboard() {
       const isOnline = await db.isSupabaseActive();
       if (isOnline) {
         const { data, error } = await supabase.auth.signUp({
-          email: regEmail,
+          email: emailTrimmed,
           password: regPassword,
           options: {
             data: {
-              full_name: regName,
-              phone: regPhone,
+              full_name: nameTrimmed,
+              phone: phoneTrimmed,
             }
           }
         });
@@ -968,9 +972,9 @@ export default function OwnerDashboard() {
 
       const newProfile: UserProfile = {
         id: userId,
-        name: regName,
-        phone: regPhone,
-        email: regEmail,
+        name: nameTrimmed,
+        phone: phoneTrimmed,
+        email: emailTrimmed,
         role: 'owner',
         status: 'pending',
         created_at: new Date().toISOString()
