@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Home, ClipboardList, ImageIcon, PlusCircle, Trash2, Edit2, 
   MapPin, Users, Maximize2, Sparkles, Check, ChevronLeft, UploadCloud, X, ArrowLeft, ShieldAlert, Star,
-  Mail, Phone, User, Lock, Loader2, Plus
+  Mail, Phone, User, Lock, Loader2, Plus, Clock
 } from 'lucide-react';
 import { db } from '@/lib/db';
 import { getCurrentUser, AuthUser, loginAs, loginWithProfile } from '@/lib/auth';
@@ -32,6 +32,7 @@ export default function OwnerDashboard() {
   const [activeTab, setActiveTab] = useState<'houses' | 'roomTypes'>('houses');
   const [loading, setLoading] = useState(true);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [showApprovalAlert, setShowApprovalAlert] = useState(false);
 
   // Database Data States
   const [myHouses, setMyHouses] = useState<BoardingHouse[]>([]);
@@ -392,6 +393,17 @@ export default function OwnerDashboard() {
   useEffect(() => {
     loadOwnerData();
   }, [currentUser, isCheckingAuth]);
+
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'owner') {
+      const dismissed = localStorage.getItem(`dismissed_approval_${currentUser.id}`);
+      if (dismissed !== 'true') {
+        setShowApprovalAlert(true);
+      }
+    } else {
+      setShowApprovalAlert(false);
+    }
+  }, [currentUser]);
 
 
   // --- HOUSE ACTIONS ---
@@ -1508,27 +1520,36 @@ export default function OwnerDashboard() {
 
         {/* ── PENDING APPROVAL SCREEN ── */}
         {authMode === 'pending' && (
-          <div className="w-full max-w-md bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] p-10 text-center space-y-6 relative z-10 animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-20 h-20 bg-amber-50 rounded-[1.8rem] flex items-center justify-center mx-auto">
-              <span className="text-4xl">⏳</span>
+          <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-[2.5rem] border border-slate-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] p-8 md:p-10 text-center space-y-6 relative z-10 animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+              <Clock className="w-8 h-8 animate-pulse" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-heading font-black text-slate-900 tracking-tight">Đang chờ Admin duyệt</h2>
-              <p className="text-sm font-bold text-slate-500">
-                Xin chào <span className="text-[#0075de]">{pendingName}</span>! Yêu cầu đăng ký của bạn đã được gửi đi.
+              <h2 className="text-xl font-heading font-black text-slate-900 tracking-tight">Đang Chờ Xét Duyệt</h2>
+              <p className="text-xs font-bold text-slate-500 leading-relaxed">
+                Xin chào <span className="text-[#0075de] font-extrabold">{pendingName}</span>! Yêu cầu đăng ký tài khoản của bạn đã được tiếp nhận.
               </p>
             </div>
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 text-left space-y-2">
-              <p className="text-xs font-black text-amber-700 uppercase tracking-wider">🔔 Quy trình xét duyệt</p>
-              <ul className="text-xs font-medium text-amber-600 space-y-1.5 list-disc list-inside">
-                <li>Admin Sale Hùng sẽ xem xét thông tin của bạn</li>
-                <li>Thông thường trong vòng <strong>24 giờ làm việc</strong></li>
-                <li>Sau khi được duyệt, bạn có thể đăng nhập bình thường</li>
-              </ul>
+            <div className="bg-slate-50/70 border border-slate-100 rounded-2xl p-5 text-left space-y-3">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quy trình xác thực đối tác</p>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#0075de] mt-1.5 shrink-0" />
+                  <p className="text-xs font-medium text-slate-600">Admin Sale Hùng đang kiểm định hồ sơ đối tác chủ trọ.</p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#0075de] mt-1.5 shrink-0" />
+                  <p className="text-xs font-medium text-slate-600">Thời gian xử lý thông thường tối đa <strong>24 giờ làm việc</strong>.</p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#0075de] mt-1.5 shrink-0" />
+                  <p className="text-xs font-medium text-slate-600">Hệ thống sẽ tự động kích hoạt Dashboard sau khi được duyệt.</p>
+                </div>
+              </div>
             </div>
             <button
               onClick={() => setAuthMode('login')}
-              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl h-12 font-black text-xs uppercase tracking-widest transition-all"
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl h-12 font-black text-xs uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer"
             >
               Quay lại đăng nhập
             </button>
@@ -1540,21 +1561,27 @@ export default function OwnerDashboard() {
 
         {/* ── REJECTED SCREEN ── */}
         {authMode === 'rejected' && (
-          <div className="w-full max-w-md bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] p-10 text-center space-y-6 relative z-10 animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-20 h-20 bg-red-50 rounded-[1.8rem] flex items-center justify-center mx-auto">
-              <span className="text-4xl">❌</span>
+          <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-[2.5rem] border border-slate-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] p-8 md:p-10 text-center space-y-6 relative z-10 animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+              <ShieldAlert className="w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-heading font-black text-slate-900 tracking-tight">Tài khoản bị từ chối</h2>
-              <p className="text-sm font-bold text-slate-500">
-                Xin lỗi <span className="text-red-500">{pendingName}</span>, tài khoản của bạn không được chấp thuận.
+              <h2 className="text-xl font-heading font-black text-slate-900 tracking-tight">Tài Khoản Bị Từ Chối</h2>
+              <p className="text-xs font-bold text-slate-500 leading-relaxed">
+                Rất tiếc <span className="text-red-500 font-extrabold">{pendingName}</span>, yêu cầu phê duyệt đã bị từ chối.
               </p>
             </div>
-            <div className="bg-red-50 border border-red-100 rounded-2xl p-5 text-left">
-              <p className="text-xs font-medium text-red-600">
-                Vui lòng liên hệ trực tiếp với môi giới Sale Hùng qua hotline <strong>0912.345.678</strong> để biết thêm chi tiết.
+            <div className="bg-red-50/55 border border-red-100 rounded-2xl p-5 text-left">
+              <p className="text-xs font-medium text-red-600/90 leading-relaxed">
+                Vui lòng liên hệ trực tiếp với môi giới <strong>Sale Hùng</strong> qua hotline <strong>0912.345.678</strong> hoặc Zalo để cập nhật lại thông tin hồ sơ.
               </p>
             </div>
+            <button
+              onClick={() => setAuthMode('login')}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl h-12 font-black text-xs uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+              Quay lại đăng nhập
+            </button>
             <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-black text-slate-400 hover:text-slate-700 transition-colors uppercase tracking-wider group">
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Về trang chủ
             </Link>
@@ -1790,6 +1817,30 @@ export default function OwnerDashboard() {
         {/* Scrollable Workspace */}
         <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-[#f8fafc]">
           
+          {/* ==================== SCREEN 0: APPROVAL WELCOME BANNER ==================== */}
+          {showApprovalAlert && currentUser && (
+            <div className="mb-8 bg-emerald-50 border border-emerald-100 rounded-3xl p-6 flex items-start gap-4 shadow-sm relative animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center font-black shrink-0 shadow-md shadow-emerald-500/10">
+                <Check className="w-6 h-6" />
+              </div>
+              <div className="space-y-1.5 flex-1 pr-6">
+                <h4 className="text-sm font-black text-slate-900 leading-none">Tài khoản đối tác đã được phê duyệt thành công!</h4>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                  Xin chúc mừng đối tác <strong className="text-emerald-600 font-bold">{currentUser.name}</strong>! Yêu cầu đăng ký tài khoản chủ trọ của bạn đã được kiểm duyệt và chấp thuận bởi Admin Sale Hùng. Bây giờ bạn có thể bắt đầu đăng tin, quản lý nhà trọ và các loại phòng cho thuê của mình.
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  localStorage.setItem(`dismissed_approval_${currentUser.id}`, 'true');
+                  setShowApprovalAlert(false);
+                }}
+                className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/50 rounded-full transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           {/* ==================== SCREEN 1: ADD/EDIT HOUSE FORM ==================== */}
           {showHouseForm ? (
             <div className="max-w-2xl mx-auto bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl p-8 md:p-10">
