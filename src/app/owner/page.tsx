@@ -1620,12 +1620,13 @@ export default function OwnerDashboard() {
             </div>
 
             {authMode === 'login' ? (
-              <form onSubmit={handleLoginOwner} className="space-y-5 text-left">
+              <form onSubmit={handleLoginOwner} autoComplete="off" className="space-y-5 text-left">
                 <div className="space-y-2 group">
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Email hoặc Số điện thoại *</label>
                   <div className="relative flex items-center bg-slate-50 border border-slate-200/80 focus-within:border-[#0075de] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0075de]/5 rounded-2xl px-4 py-3.5 transition-all duration-200">
                     <Mail className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
                     <input type="text" required placeholder="Nhập email hoặc số điện thoại..."
+                      autoComplete="off"
                       value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
                       className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 placeholder-slate-400/80" />
                   </div>
@@ -1636,6 +1637,7 @@ export default function OwnerDashboard() {
                   <div className="relative flex items-center bg-slate-50 border border-slate-200/80 focus-within:border-[#0075de] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0075de]/5 rounded-2xl px-4 py-3.5 transition-all duration-200">
                     <Lock className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
                     <input type="password" required placeholder="Nhập mật khẩu của bạn..."
+                      autoComplete="new-password"
                       value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
                       className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 placeholder-slate-400/80" />
                   </div>
@@ -1669,7 +1671,7 @@ export default function OwnerDashboard() {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleRegisterOwner} className="space-y-4 text-left">
+              <form onSubmit={handleRegisterOwner} autoComplete="off" className="space-y-4 text-left">
                 <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 text-left">
                   <p className="text-xs font-bold text-blue-700">📋 Sau khi đăng ký, tài khoản cần được <strong>Admin duyệt</strong> trước khi sử dụng.</p>
                 </div>
@@ -1678,6 +1680,7 @@ export default function OwnerDashboard() {
                   <div className="relative flex items-center bg-slate-50 border border-slate-200/80 focus-within:border-[#0075de] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0075de]/5 rounded-2xl px-4 py-3.5 transition-all duration-200">
                     <User className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
                     <input type="text" required placeholder="Họ và tên đầy đủ..."
+                      autoComplete="off"
                       value={regName} onChange={(e) => setRegName(e.target.value)}
                       className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 placeholder-slate-400/80" />
                   </div>
@@ -1687,6 +1690,7 @@ export default function OwnerDashboard() {
                   <div className="relative flex items-center bg-slate-50 border border-slate-200/80 focus-within:border-[#0075de] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0075de]/5 rounded-2xl px-4 py-3.5 transition-all duration-200">
                     <Mail className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
                     <input type="email" required placeholder="email@example.com..."
+                      autoComplete="off"
                       value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
                       className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 placeholder-slate-400/80" />
                   </div>
@@ -1696,6 +1700,7 @@ export default function OwnerDashboard() {
                   <div className="relative flex items-center bg-slate-50 border border-slate-200/80 focus-within:border-[#0075de] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0075de]/5 rounded-2xl px-4 py-3.5 transition-all duration-200">
                     <Phone className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
                     <input type="tel" required placeholder="09xxxxxxxx..."
+                      autoComplete="off"
                       value={regPhone} onChange={(e) => setRegPhone(e.target.value)}
                       className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 placeholder-slate-400/80" />
                   </div>
@@ -1705,6 +1710,7 @@ export default function OwnerDashboard() {
                   <div className="relative flex items-center bg-slate-50 border border-slate-200/80 focus-within:border-[#0075de] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0075de]/5 rounded-2xl px-4 py-3.5 transition-all duration-200">
                     <Lock className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
                     <input type="password" required placeholder="Mật khẩu tối thiểu 6 ký tự..."
+                      autoComplete="new-password"
                       value={regPassword} onChange={(e) => setRegPassword(e.target.value)}
                       className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 placeholder-slate-400/80" />
                   </div>

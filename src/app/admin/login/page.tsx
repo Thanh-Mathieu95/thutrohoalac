@@ -73,7 +73,7 @@ export default function AdminLoginPage() {
               <p className="text-gray-400 font-medium">Hệ thống quản trị Thuê Trọ Hòa Lạc</p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} autoComplete="off" className="space-y-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Tài khoản quản trị</label>
                 <div className="relative">
@@ -81,6 +81,7 @@ export default function AdminLoginPage() {
                   <input 
                     type="email"
                     required
+                    autoComplete="off"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@thuetrohoalac.vn"
@@ -96,6 +97,7 @@ export default function AdminLoginPage() {
                   <input 
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
