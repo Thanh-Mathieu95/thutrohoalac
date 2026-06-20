@@ -24,15 +24,28 @@ const AMENITY_OPTIONS = [
   { value: 'Tủ lạnh', label: 'Tủ lạnh' },
   { value: 'Máy giặt', label: 'Máy giặt' },
   { value: 'Ban công', label: 'Ban công' },
-  { value: 'Nóng lạnh', label: 'Nóng lạnh' }
+  { value: 'Nóng lạnh', label: 'Nóng lạnh' },
+  { value: 'WiFi', label: 'WiFi' },
+  { value: 'Gửi xe', label: 'Gửi xe' },
+  { value: 'Camera an ninh', label: 'Camera an ninh' },
+  { value: 'Sân phơi đồ', label: 'Sân phơi đồ' },
+  { value: 'Bếp chung', label: 'Bếp chung' },
+  { value: 'Tự nấu ăn', label: 'Tự nấu ăn' },
+  { value: 'Thang máy', label: 'Thang máy' },
+  { value: 'Cửa khóa thẻ từ', label: 'Cửa khóa thẻ từ' },
+  { value: 'Vệ sinh khép kín', label: 'Vệ sinh khép kín' },
 ];
 
 const PRICE_OPTIONS = [
   { value: '', label: 'Tất cả mức giá' },
-  { value: 'under2', label: 'Dưới 2 triệu' },
-  { value: '2-3.5', label: '2 - 3.5 triệu' },
-  { value: '3.5-5', label: '3.5 - 5 triệu' },
-  { value: 'over5', label: 'Trên 5 triệu' }
+  { value: 'under1', label: 'Dưới 1 triệu' },
+  { value: '1-2', label: '1 - 2 triệu' },
+  { value: '2-3', label: '2 - 3 triệu' },
+  { value: '3-4', label: '3 - 4 triệu' },
+  { value: '4-5', label: '4 - 5 triệu' },
+  { value: '5-7', label: '5 - 7 triệu' },
+  { value: '7-10', label: '7 - 10 triệu' },
+  { value: 'over10', label: 'Trên 10 triệu' },
 ];
 
 const ROOM_TYPE_OPTIONS = [
@@ -435,10 +448,14 @@ function HomeContent() {
     const priceFrom = houseRts.length > 0 ? Math.min(...houseRts.map(rt => rt.price_from)) : 0;
 
     let matchesPrice = true;
-    if (price === 'under2') matchesPrice = priceFrom < 2000000;
-    else if (price === '2-3.5') matchesPrice = priceFrom >= 2000000 && priceFrom <= 3500000;
-    else if (price === '3.5-5') matchesPrice = priceFrom > 3500000 && priceFrom <= 5000000;
-    else if (price === 'over5') matchesPrice = priceFrom > 5000000;
+    if (price === 'under1') matchesPrice = priceFrom < 1000000;
+    else if (price === '1-2') matchesPrice = priceFrom >= 1000000 && priceFrom < 2000000;
+    else if (price === '2-3') matchesPrice = priceFrom >= 2000000 && priceFrom < 3000000;
+    else if (price === '3-4') matchesPrice = priceFrom >= 3000000 && priceFrom < 4000000;
+    else if (price === '4-5') matchesPrice = priceFrom >= 4000000 && priceFrom < 5000000;
+    else if (price === '5-7') matchesPrice = priceFrom >= 5000000 && priceFrom < 7000000;
+    else if (price === '7-10') matchesPrice = priceFrom >= 7000000 && priceFrom < 10000000;
+    else if (price === 'over10') matchesPrice = priceFrom >= 10000000;
 
     const matchesAmenity = !amenity || houseRts.some(rt => rt.utilities.includes(amenity));
 
@@ -466,10 +483,14 @@ function HomeContent() {
       house.address.toLowerCase().includes(area.toLowerCase());
 
     let matchesPrice = true;
-    if (price === 'under2') matchesPrice = rt.price_from < 2000000;
-    else if (price === '2-3.5') matchesPrice = rt.price_from >= 2000000 && rt.price_from <= 3500000;
-    else if (price === '3.5-5') matchesPrice = rt.price_from > 3500000 && rt.price_from <= 5000000;
-    else if (price === 'over5') matchesPrice = rt.price_from > 5000000;
+    if (price === 'under1') matchesPrice = rt.price_from < 1000000;
+    else if (price === '1-2') matchesPrice = rt.price_from >= 1000000 && rt.price_from < 2000000;
+    else if (price === '2-3') matchesPrice = rt.price_from >= 2000000 && rt.price_from < 3000000;
+    else if (price === '3-4') matchesPrice = rt.price_from >= 3000000 && rt.price_from < 4000000;
+    else if (price === '4-5') matchesPrice = rt.price_from >= 4000000 && rt.price_from < 5000000;
+    else if (price === '5-7') matchesPrice = rt.price_from >= 5000000 && rt.price_from < 7000000;
+    else if (price === '7-10') matchesPrice = rt.price_from >= 7000000 && rt.price_from < 10000000;
+    else if (price === 'over10') matchesPrice = rt.price_from >= 10000000;
 
     const matchesAmenity = !amenity || rt.utilities.includes(amenity);
 
