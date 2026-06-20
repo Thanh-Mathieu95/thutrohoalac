@@ -26,7 +26,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BoardingHouse } from '@/lib/supabase';
 import { db } from '@/lib/db';
-import { saveImageToIDB } from '@/lib/image-store';
+import { saveImageToIDB, compressImage } from '@/lib/image-store';
 import { IDBImage } from '@/components/idb-image';
 
 const ALL_AMENITIES = [
@@ -128,7 +128,8 @@ export default function NewRoomPage() {
           reader.readAsDataURL(file);
         });
 
-        const finalUrl = await saveImageToIDB(base64);
+        const compressed = await compressImage(base64);
+        const finalUrl = await saveImageToIDB(compressed);
         newImages.push(finalUrl);
       } catch (err: any) {
         console.error('Lỗi khi xử lý file ảnh:', err);

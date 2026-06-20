@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { db } from '@/lib/db';
 import { RoomType, RoomTypeImage } from '@/lib/supabase';
-import { saveImageToIDB } from '@/lib/image-store';
+import { saveImageToIDB, compressImage } from '@/lib/image-store';
 import { IDBImage } from '@/components/idb-image';
 
 export default function EditRoomPage() {
@@ -170,7 +170,8 @@ export default function EditRoomPage() {
           reader.readAsDataURL(file);
         });
 
-        const finalUrl = await saveImageToIDB(base64);
+        const compressed = await compressImage(base64);
+        const finalUrl = await saveImageToIDB(compressed);
         const hasMain = roomImages.some(img => img.image_type === 'main');
 
         await db.addRoomTypeImage({

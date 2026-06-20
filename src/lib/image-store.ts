@@ -61,3 +61,71 @@ export async function deleteImageFromIDB(refKey: string): Promise<void> {
 export function isIDBRef(url: string): boolean {
   return url.startsWith('idb:');
 }
+
+/** Compress an image file or base64 string using Canvas (resizes long-edge to 1600px and compresses quality to 80%) */
+export function compressImage(
+  fileOrBase64: File | string,
+  maxWidth: number = 1600,
+  maxHeight: number = 1600,
+  quality: number = 0.8
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // If running on server side, return original directly
+    if (typeof window === 'undefined') {
+      if (typeof fileOrBase64 === 'string') {
+        resolve(fileOrBase64);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target?.result as string);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(fileOrBase64);
+      }
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+
+      // Calculate new dimensions preserving aspect ratio
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get 2d context from canvas'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressedDataUrl);
+    };
+
+    img.onerror = (err) => reject(err);
+
+    if (typeof fileOrBase64 === 'string') {
+      img.src = fileOrBase64;
+    } else {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        img.src = ev.target?.result as string;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(fileOrBase64);
+    }
+  });
+}

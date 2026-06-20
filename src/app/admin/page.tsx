@@ -49,7 +49,7 @@ export default function AdminDashboard() {
   const [showOwnerForm,  setShowOwnerForm]  = useState(false);
   const [editingOwner,   setEditingOwner]   = useState<UserProfile | null>(null);
   const [ownerSearch,    setOwnerSearch]    = useState('');
-  const [ownerFilter,    setOwnerFilter]    = useState<'all' | 'active' | 'pending' | 'rejected'>('all');
+  const [ownerFilter,    setOwnerFilter]    = useState<'all' | 'active' | 'pending' | 'rejected' | 'inactive'>('all');
   const [ownerForm, setOwnerForm] = useState({ name: '', email: '', phone: '', status: 'active' as string });
   const [ownerSaving, setOwnerSaving] = useState(false);
 
@@ -141,15 +141,10 @@ export default function AdminDashboard() {
   const handleDeleteOwner = async (ownerId: string, ownerName: string) => {
     if (!confirm(`Xóa chủ trọ "${ownerName}"? Tất cả nhà trọ của họ sẽ bị xóa theo!`)) return;
     try {
-      const profiles = JSON.parse(localStorage.getItem('profiles') || '[]');
-      const updated = profiles.filter((p: any) => p.id !== ownerId);
-      localStorage.setItem('profiles', JSON.stringify(updated));
-      // Also delete their houses
-      const ownerHouses = houses.filter(h => h.owner_id === ownerId);
-      for (const h of ownerHouses) await db.deleteBoardingHouse(h.id);
+      await db.deleteOwner(ownerId);
       await loadData();
     } catch (e) {
-      alert('Có lỗi!');
+      alert('Có lỗi khi xóa chủ trọ!');
     }
   };
 
@@ -431,7 +426,8 @@ export default function AdminDashboard() {
               <p className="text-xs font-bold text-gray-400 mt-0.5">
                 {allOwners.filter(o=>o.status==='active').length} active &nbsp;·&nbsp;
                 {pendingCount} chờ duyệt &nbsp;·&nbsp;
-                {allOwners.filter(o=>o.status==='rejected').length} từ chối
+                {allOwners.filter(o=>o.status==='rejected').length} từ chối &nbsp;·&nbsp;
+                {allOwners.filter(o=>o.status==='inactive').length} vô hiệu
               </p>
             </div>
             <Button onClick={openAddOwner}
@@ -449,12 +445,12 @@ export default function AdminDashboard() {
                 className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-2xl outline-none text-sm font-medium text-gray-900 focus:border-[#0075de]/20 transition-all shadow-sm" />
             </div>
             <div className="flex gap-1.5">
-              {(['all','active','pending','rejected'] as const).map(f => (
+              {(['all','active','pending','rejected','inactive'] as const).map(f => (
                 <button key={f} onClick={() => setOwnerFilter(f)}
                   className={`px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all ${
                     ownerFilter === f ? 'bg-[#0075de] text-white shadow-md shadow-[#0075de]/20' : 'bg-white border border-gray-100 text-gray-500 hover:border-gray-300'
                   }`}>
-                  {f === 'all' ? 'Tất cả' : f === 'active' ? 'Active' : f === 'pending' ? 'Chờ duyệt' : 'Từ chối'}
+                  {f === 'all' ? 'Tất cả' : f === 'active' ? 'Active' : f === 'pending' ? 'Chờ duyệt' : f === 'rejected' ? 'Từ chối' : 'Vô hiệu'}
                 </button>
               ))}
             </div>

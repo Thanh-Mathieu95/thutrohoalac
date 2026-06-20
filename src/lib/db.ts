@@ -65,6 +65,53 @@ async function uploadToSupabaseStorage(imagePath: string, pathPrefix: string): P
   }
 }
 
+// Helper to serialize metadata fields into the description field for Supabase compatibility
+export function serializeSupabaseRoomType(roomType: any) {
+  const { service_fee, electricity_price, rooms, description, ...rest } = roomType;
+  const metadata = {
+    service_fee: Number(service_fee) || 0,
+    electricity_price: Number(electricity_price) || 3500,
+    rooms: rooms || []
+  };
+  const serializedDesc = `__METADATA__:${JSON.stringify(metadata)}__DESC__:${description || ''}`;
+  return {
+    ...rest,
+    description: serializedDesc
+  };
+}
+
+// Helper to deserialize metadata fields from the description field for Supabase compatibility
+export function deserializeSupabaseRoomType(roomType: any): any {
+  if (!roomType) return roomType;
+  const desc = roomType.description || '';
+  if (desc.startsWith('__METADATA__:')) {
+    const metaIndex = desc.indexOf('__DESC__:');
+    if (metaIndex !== -1) {
+      try {
+        const metaStr = desc.substring(13, metaIndex);
+        const actualDesc = desc.substring(metaIndex + 9);
+        const metadata = JSON.parse(metaStr);
+        return {
+          ...roomType,
+          service_fee: metadata.service_fee,
+          electricity_price: metadata.electricity_price,
+          rooms: metadata.rooms,
+          description: actualDesc
+        };
+      } catch (e) {
+        console.warn("Failed to parse room type metadata:", e);
+      }
+    }
+  }
+  // Default fallbacks if description doesn't contain metadata
+  return {
+    ...roomType,
+    service_fee: roomType.service_fee ?? 0,
+    electricity_price: roomType.electricity_price ?? 3500,
+    rooms: roomType.rooms ?? []
+  };
+}
+
 const IS_SERVER = typeof window === 'undefined';
 
 // --- SEED DATA FOR LOCALSTORAGE FALLBACK ---
@@ -445,7 +492,7 @@ export const db = {
           query = query.eq('boarding_house_id', filters.boarding_house_id);
         }
         const { data, error } = await query;
-        if (!error && data) return data as RoomType[];
+        if (!error && data) return data.map(deserializeSupabaseRoomType) as RoomType[];
       }
     } catch (e) {}
 
@@ -460,7 +507,7 @@ export const db = {
     try {
       if (await isSupabaseOnline()) {
         const { data, error } = await supabase.from('room_types').select('*').eq('id', id).single();
-        if (!error && data) return data as RoomType;
+        if (!error && data) return deserializeSupabaseRoomType(data) as RoomType;
       }
     } catch (e) {}
 
@@ -471,9 +518,9 @@ export const db = {
   async createRoomType(roomType: Omit<RoomType, 'id' | 'created_at'>): Promise<RoomType> {
     try {
       if (await isSupabaseOnline()) {
-        const { rooms, ...supabaseData } = roomType as any;
-        const { data, error } = await supabase.from('room_types').insert(supabaseData).select().single();
-        if (!error && data) return data as RoomType;
+        const serialized = serializeSupabaseRoomType(roomType);
+        const { data, error } = await supabase.from('room_types').insert(serialized).select().single();
+        if (!error && data) return deserializeSupabaseRoomType(data);
       }
     } catch (e) {}
 
@@ -491,9 +538,13 @@ export const db = {
   async updateRoomType(id: number, updates: Partial<RoomType>): Promise<RoomType> {
     try {
       if (await isSupabaseOnline()) {
-        const { rooms, ...supabaseData } = updates as any;
-        const { data, error } = await supabase.from('room_types').update(supabaseData).eq('id', id).select().single();
-        if (!error && data) return data as RoomType;
+        const current = await this.getRoomTypeById(id);
+        if (current) {
+          const merged = { ...current, ...updates };
+          const serialized = serializeSupabaseRoomType(merged);
+          const { data, error } = await supabase.from('room_types').update(serialized).eq('id', id).select().single();
+          if (!error && data) return deserializeSupabaseRoomType(data);
+        }
       }
     } catch (e) {}
 
@@ -794,6 +845,22 @@ export const db = {
     return list.find(p => p.email.trim().toLowerCase() === email.trim().toLowerCase()) || null;
   },
 
+  async getOwnerById(id: string): Promise<UserProfile | null> {
+    try {
+      if (await isSupabaseOnline()) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', id)
+          .single();
+        if (!error && data) return data as UserProfile;
+      }
+    } catch (e) {}
+
+    const list = getCollection<UserProfile>('profiles');
+    return list.find(p => p.id === id) || null;
+  },
+
   async createOwnerProfile(profile: UserProfile): Promise<boolean> {
     // LocalStorage fallback
     const list = getCollection<UserProfile>('profiles');
@@ -843,6 +910,32 @@ export const db = {
         await supabase.from('profiles').update({ status }).eq('id', ownerId);
       }
     } catch (e) {}
+
+    return true;
+  },
+
+  async deleteOwner(ownerId: string): Promise<boolean> {
+    // Supabase
+    try {
+      if (await isSupabaseOnline()) {
+        const { error } = await supabase.from('profiles').delete().eq('id', ownerId);
+        if (!error) return true;
+      }
+    } catch (e) {
+      console.warn('Error deleting owner in Supabase:', e);
+    }
+
+    // LocalStorage
+    // Delete profile
+    const profiles = getCollection<UserProfile>('profiles');
+    saveCollection('profiles', profiles.filter(p => p.id !== ownerId));
+
+    // Cascade delete boarding houses for this owner in LocalStorage
+    const houses = getCollection<BoardingHouse>('boarding_houses');
+    const ownerHouses = houses.filter(h => h.owner_id === ownerId);
+    for (const h of ownerHouses) {
+      await this.deleteBoardingHouse(h.id);
+    }
 
     return true;
   },

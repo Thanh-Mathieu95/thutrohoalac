@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   MapPin, ChevronLeft, Star, Home, Maximize2, Users, 
-  ChevronRight, RefreshCw, Phone, X, LayoutGrid
+  ChevronRight, RefreshCw, Phone, X, LayoutGrid, Camera
 } from 'lucide-react';
 import { db } from '@/lib/db';
 import { BoardingHouse, RoomType, BoardingHouseImage, RoomTypeImage } from '@/lib/supabase';
@@ -171,43 +171,85 @@ export default function BoardingHouseDetailPage() {
           </div>
 
           {/* Top-right 1 */}
-          <div className="relative cursor-pointer group overflow-hidden" onClick={() => openLightbox(1)}>
-            <IDBImage
-              src={allImages[1] || allImages[0] || FALLBACK}
-              alt="Ảnh 2"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
+          <div 
+            className="relative cursor-pointer group overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center" 
+            onClick={() => allImages[1] ? openLightbox(1) : undefined}
+          >
+            {allImages[1] ? (
+              <IDBImage
+                src={allImages[1]}
+                alt="Ảnh 2"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-slate-300/70 select-none">
+                <Camera className="w-5 h-5 mb-1" />
+                <span className="text-[9px] font-black uppercase tracking-wider">Trống</span>
+              </div>
+            )}
           </div>
 
           {/* Top-right 2 */}
-          <div className="relative cursor-pointer group overflow-hidden" onClick={() => openLightbox(2)}>
-            <IDBImage
-              src={allImages[2] || allImages[0] || FALLBACK}
-              alt="Ảnh 3"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
+          <div 
+            className="relative cursor-pointer group overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center" 
+            onClick={() => allImages[2] ? openLightbox(2) : undefined}
+          >
+            {allImages[2] ? (
+              <IDBImage
+                src={allImages[2]}
+                alt="Ảnh 3"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-slate-300/70 select-none">
+                <Camera className="w-5 h-5 mb-1" />
+                <span className="text-[9px] font-black uppercase tracking-wider">Trống</span>
+              </div>
+            )}
           </div>
 
           {/* Bottom-right 1 */}
-          <div className="relative cursor-pointer group overflow-hidden" onClick={() => openLightbox(3)}>
-            <IDBImage
-              src={allImages[3] || allImages[0] || FALLBACK}
-              alt="Ảnh 4"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
+          <div 
+            className="relative cursor-pointer group overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center" 
+            onClick={() => allImages[3] ? openLightbox(3) : undefined}
+          >
+            {allImages[3] ? (
+              <IDBImage
+                src={allImages[3]}
+                alt="Ảnh 4"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-slate-300/70 select-none">
+                <Camera className="w-5 h-5 mb-1" />
+                <span className="text-[9px] font-black uppercase tracking-wider">Trống</span>
+              </div>
+            )}
           </div>
 
           {/* Bottom-right 2 — "xem thêm" overlay if 5+ images */}
-          <div className="relative cursor-pointer group overflow-hidden" onClick={() => openLightbox(0)}>
-            <IDBImage
-              src={allImages[4] || allImages[0] || FALLBACK}
-              alt="Ảnh 5"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            {allImages.length > 5 && (
-              <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1">
-                <LayoutGrid className="w-5 h-5 text-white" />
-                <span className="text-white font-black text-xs">+{allImages.length - 5} ảnh</span>
+          <div 
+            className="relative cursor-pointer group overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center" 
+            onClick={() => allImages[4] ? openLightbox(4) : undefined}
+          >
+            {allImages[4] ? (
+              <>
+                <IDBImage
+                  src={allImages[4]}
+                  alt="Ảnh 5"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                {allImages.length > 5 && (
+                  <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1">
+                    <LayoutGrid className="w-5 h-5 text-white" />
+                    <span className="text-white font-black text-xs">+{allImages.length - 5} ảnh</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-slate-300/70 select-none">
+                <Camera className="w-5 h-5 mb-1" />
+                <span className="text-[9px] font-black uppercase tracking-wider">Trống</span>
               </div>
             )}
           </div>

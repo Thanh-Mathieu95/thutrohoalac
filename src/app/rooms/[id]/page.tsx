@@ -11,10 +11,10 @@ import {
   LayoutGrid, Phone, MessageSquare, Calendar, ShieldCheck, Play, X, CheckCircle,
   Snowflake, ShowerHead, BedDouble, Bed, DoorClosed, Table, Sofa, WashingMachine,
   CookingPot, Fence, Grid, ArrowUpDown, Refrigerator, PlugZap, ZoomIn, ZoomOut,
-  Wifi, Fingerprint, Clock, Tv, Sparkles
+  Wifi, Fingerprint, Clock, Tv, Sparkles, Camera
 } from 'lucide-react';
 import { db } from '@/lib/db';
-import { RoomType, BoardingHouse, RoomTypeImage, BoardingHouseImage } from '@/lib/supabase';
+import { RoomType, BoardingHouse, RoomTypeImage, BoardingHouseImage, UserProfile } from '@/lib/supabase';
 import { IDBImage } from '@/components/idb-image';
 
 const AreaMap = dynamic(() => import('@/components/area-map'), {
@@ -37,6 +37,8 @@ export default function RoomDetailPage() {
   const [bhImages, setBhImages] = useState<BoardingHouseImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [houseRoomTypes, setHouseRoomTypes] = useState<RoomType[]>([]);
+  const [owner, setOwner] = useState<UserProfile | null>(null);
+
 
   // UI States
   const [isFavorite, setIsFavorite] = useState(false);
@@ -65,6 +67,11 @@ export default function RoomDetailPage() {
           setRoomType(rt);
           const bh = await db.getBoardingHouseById(rt.boarding_house_id);
           setHouse(bh);
+
+          if (bh && bh.owner_id) {
+            const own = await db.getOwnerById(bh.owner_id);
+            setOwner(own);
+          }
           
           // Get approved images for room type
           const rtImgs = await db.getRoomTypeImages(rt.id, 'approved');
@@ -86,6 +93,7 @@ export default function RoomDetailPage() {
     }
     loadData();
   }, [id]);
+
 
   useEffect(() => {
     if (id) {
@@ -109,12 +117,8 @@ export default function RoomDetailPage() {
 
   const allDisplayImages = approvedImages.map(i => i.image_url);
   const displayImages = allDisplayImages.slice(0, 5);
-  // Add placeholder if less than 5 images
-  while (displayImages.length < 5) {
-    displayImages.push('https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=800');
-  }
-
-  const lightboxImages = allDisplayImages.length >= 5 ? allDisplayImages : displayImages;
+  const mainImage = displayImages[0] || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=800';
+  const lightboxImages = allDisplayImages.length > 0 ? allDisplayImages : [mainImage];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -156,6 +160,7 @@ export default function RoomDetailPage() {
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
+
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,6 +223,9 @@ export default function RoomDetailPage() {
 
 
 
+  const ownerPhone = owner?.phone || '0912345678';
+  const ownerName = owner?.name || 'Sale Hùng';
+
   return (
     <div className="min-h-screen bg-[#f6f5f4] pb-24">
       {/* Container */}
@@ -275,7 +283,7 @@ export default function RoomDetailPage() {
             {/* 1 Big Main Image (Left) */}
             <div className="md:col-span-2 relative h-full bg-gray-50">
               <IDBImage 
-                src={displayImages[0]} 
+                src={mainImage} 
                 alt="Main view" 
                 className="object-cover w-full h-full absolute inset-0 cursor-pointer hover:opacity-95 transition-opacity"
                 onClick={() => { setLightboxIndex(0); setIsLightboxOpen(true); }}
@@ -285,17 +293,27 @@ export default function RoomDetailPage() {
             
             {/* 4 Small Images (Right) */}
             <div className="hidden md:grid grid-cols-2 col-span-2 gap-2 h-full">
-              {displayImages.slice(1, 5).map((img, idx) => (
-                <div key={idx} className="relative h-full bg-gray-50 overflow-hidden">
-                  <IDBImage 
-                    src={img} 
-                    alt={`Detail view ${idx + 1}`} 
-                    className="object-cover w-full h-full absolute inset-0 cursor-pointer hover:opacity-95 transition-opacity"
-                    onClick={() => { setLightboxIndex(idx + 1); setIsLightboxOpen(true); }}
-                    loading="lazy"
-                  />
-                </div>
-              ))}
+              {[1, 2, 3, 4].map((i) => {
+                const img = displayImages[i];
+                return (
+                  <div key={i} className="relative h-full bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
+                    {img ? (
+                      <IDBImage 
+                        src={img} 
+                        alt={`Detail view ${i}`} 
+                        className="object-cover w-full h-full absolute inset-0 cursor-pointer hover:opacity-95 transition-opacity"
+                        onClick={() => { setLightboxIndex(i); setIsLightboxOpen(true); }}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-slate-300/70 select-none">
+                        <Camera className="w-5 h-5 mb-1" />
+                        <span className="text-[9px] font-black uppercase tracking-wider">Trống</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -495,16 +513,18 @@ export default function RoomDetailPage() {
           {/* ── BẢN ĐỒ VỊ TRÍ KHU VỰC ── */}
             {house.latitude && house.longitude && (
               <div className="space-y-4 pt-8 border-t border-gray-100 p-8 bg-white rounded-xl border border-[#e6e6e6] shadow-sm">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#0075de]">Bản đồ vị trí</span>
-                <h3 className="text-xl font-heading font-black text-gray-900 tracking-tight mt-1">Vị Trí Khu Vực</h3>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#0075de]">Bản đồ & Di chuyển</span>
+                <h3 className="text-xl font-heading font-black text-gray-900 tracking-tight mt-1">Vị Trí Bản Đồ</h3>
                 <p className="text-xs text-slate-500 font-semibold italic">
-                  * Để bảo mật quyền riêng tư của chủ nhà trọ, bản đồ chỉ hiển thị một vòng tròn bán kính 150m xung quanh khu vực nhà trọ, không định vị địa chỉ chi tiết.
+                  * Bản đồ định vị khu vực nhà trọ và tính toán khoảng cách thực tế đến các trường đại học lân cận.
                 </p>
-                <div className="h-96 md:h-[500px] w-full rounded-2xl overflow-hidden border border-slate-200 relative bg-slate-50 shadow-inner mt-4">
+                <div className="mt-4">
                   <AreaMap latitude={house.latitude} longitude={house.longitude} />
                 </div>
               </div>
             )}
+
+
 
           </div>
 
@@ -611,19 +631,30 @@ export default function RoomDetailPage() {
                       <Calendar className="w-4 h-4" /> Đặt lịch xem phòng trọ
                     </Button>
                     
-                    <Button 
-                      asChild 
-                      variant="outline"
-                      className="w-full border border-[#e6e6e6] text-gray-700 font-black h-14 rounded-full text-xs uppercase tracking-wider hover:bg-slate-50 flex items-center justify-center gap-2 active:scale-95 transition-all bg-white shadow-sm"
-                    >
-                      <a href={`tel:0912345678`}>
-                        <Phone className="w-4 h-4" /> Gọi điện trực tiếp
-                      </a>
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button 
+                        asChild 
+                        variant="outline"
+                        className="border border-[#e6e6e6] text-gray-700 font-black h-12 rounded-full text-[10px] uppercase tracking-wider hover:bg-slate-50 flex items-center justify-center gap-1.5 active:scale-95 transition-all bg-white shadow-sm"
+                      >
+                        <a href={`tel:${ownerPhone}`}>
+                          <Phone className="w-3.5 h-3.5 text-[#0075de]" /> Gọi điện
+                        </a>
+                      </Button>
+                      <Button 
+                        asChild 
+                        variant="outline"
+                        className="border border-[#e6e6e6] text-gray-700 font-black h-12 rounded-full text-[10px] uppercase tracking-wider hover:bg-slate-50 flex items-center justify-center gap-1.5 active:scale-95 transition-all bg-white shadow-sm"
+                      >
+                        <a href={`https://zalo.me/${ownerPhone.replace(/[\s.-]/g, '')}`} target="_blank" rel="noopener noreferrer">
+                          <MessageSquare className="w-3.5 h-3.5 text-sky-500 fill-sky-500/10" /> Nhắn Zalo
+                        </a>
+                      </Button>
+                    </div>
                   </div>
 
                   <p className="text-center text-[10px] font-bold text-gray-400 mt-6 uppercase tracking-wider">
-                    Hotline Môi giới: 0912.345.678 (Sale Hùng)
+                    {owner ? `Liên hệ chủ trọ: ${ownerName} (${ownerPhone})` : `Hotline Môi giới: 0912.345.678 (${ownerName})`}
                   </p>
                 </CardContent>
               </Card>

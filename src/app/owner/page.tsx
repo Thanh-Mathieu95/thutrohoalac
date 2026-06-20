@@ -14,7 +14,7 @@ import { db } from '@/lib/db';
 import { getCurrentUser, AuthUser, loginAs, loginWithProfile } from '@/lib/auth';
 import { supabase, BoardingHouse, RoomType, BoardingHouseImage, RoomTypeImage, UserProfile } from '@/lib/supabase';
 import Link from 'next/link';
-import { saveImageToIDB, getImageFromIDB, isIDBRef } from '@/lib/image-store';
+import { saveImageToIDB, getImageFromIDB, isIDBRef, compressImage } from '@/lib/image-store';
 import { IDBImage } from '@/components/idb-image';
 import dynamic from 'next/dynamic';
 
@@ -53,6 +53,7 @@ export default function OwnerDashboard() {
   // House Form Inputs
   const [houseName, setHouseName] = useState('');
   const [houseAddress, setHouseAddress] = useState('');
+  const [houseZone, setHouseZone] = useState('');
   const [houseDesc, setHouseDesc] = useState('');
   const [houseRules, setHouseRules] = useState('');
   const [houseLat, setHouseLat] = useState('21.0125');
@@ -247,16 +248,21 @@ export default function OwnerDashboard() {
   useEffect(() => {
     loadModalImages();
   }, [showUploadForm]);
-
   useEffect(() => {
+    // Check URL parameters for OAuth errors
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const error = searchParams.get('error');
+      const errorDescription = searchParams.get('error_description');
+      if (error) {
+        alert(`Đăng nhập Google thất bại: ${errorDescription || error}\n(Có thể do bạn chưa cấu hình hoặc cấu hình sai Google Auth Client ID/Secret trên Dashboard Supabase)`);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+
     // Read current session on mount (instead of logging out)
     const user = getCurrentUser();
-    if (user && user.role === 'owner') {
-      setCurrentUser(user);
-    } else {
-      loginAs('guest');
-      setCurrentUser(null);
-    }
 
     const checkGoogleUser = async () => {
       try {
@@ -283,6 +289,7 @@ export default function OwnerDashboard() {
           if (profile.status === 'pending') {
             setPendingName(profile.name);
             setAuthMode('pending');
+            loginAs('guest'); // Clear local session!
             await supabase.auth.signOut();
             return;
           }
@@ -290,23 +297,41 @@ export default function OwnerDashboard() {
           if (profile.status === 'rejected') {
             setPendingName(profile.name);
             setAuthMode('rejected');
+            loginAs('guest'); // Clear local session!
             await supabase.auth.signOut();
             return;
           }
 
           if (profile.status === 'active') {
-            loginWithProfile({
+            const activeUser = {
               id: profile.id,
               name: profile.name,
               phone: profile.phone || '',
               email: profile.email,
-              role: 'owner',
-              status: 'active'
-            });
+              role: 'owner' as const,
+              status: 'active' as const
+            };
+            loginWithProfile(activeUser);
+            setCurrentUser(activeUser);
+          }
+        } else {
+          // No Google session, load demo user from LocalStorage
+          if (user && user.role === 'owner') {
+            setCurrentUser(user);
+          } else {
+            loginAs('guest');
+            setCurrentUser(null);
           }
         }
       } catch (err) {
         console.warn('Error checking Google session:', err);
+        // Fallback to demo user
+        if (user && user.role === 'owner') {
+          setCurrentUser(user);
+        } else {
+          loginAs('guest');
+          setCurrentUser(null);
+        }
       }
     };
     checkGoogleUser();
@@ -320,7 +345,6 @@ export default function OwnerDashboard() {
       window.removeEventListener('auth-change', handleAuthChange);
     };
   }, []);
-
   const loadOwnerData = async () => {
     if (!currentUser || currentUser.role !== 'owner') {
       setLoading(false);
@@ -369,13 +393,17 @@ export default function OwnerDashboard() {
   // --- HOUSE ACTIONS ---
   const handleSaveHouse = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || !houseName || !houseAddress) return;
+    if (!currentUser || !houseName || !houseAddress || !houseZone) {
+      alert('Vui lòng điền đầy đủ các trường bắt buộc, bao gồm cả Khu vực!');
+      return;
+    }
 
     try {
+      const finalAddress = `${houseAddress.trim()}, ${houseZone}`;
       const houseData = {
         owner_id: currentUser.id,
         name: houseName,
-        address: houseAddress,
+        address: finalAddress,
         description: houseDesc,
         rules: houseRules,
         latitude: Number(houseLat),
@@ -393,6 +421,7 @@ export default function OwnerDashboard() {
       setEditingHouse(null);
       setHouseName('');
       setHouseAddress('');
+      setHouseZone('');
       setHouseDesc('');
       setHouseRules('');
       await loadOwnerData();
@@ -404,11 +433,22 @@ export default function OwnerDashboard() {
   const handleEditHouse = (house: BoardingHouse) => {
     setEditingHouse(house);
     setHouseName(house.name);
-    setHouseAddress(house.address);
+    
+    // Parse address and zone
+    const zones = ['Khu FPT', 'Khu ĐHQG', 'Tân Xã', 'Bình Yên', 'Thạch Hòa'];
+    const detectedZone = zones.find(z => house.address.endsWith(`, ${z}`));
+    if (detectedZone) {
+      setHouseZone(detectedZone);
+      setHouseAddress(house.address.slice(0, -(detectedZone.length + 2)));
+    } else {
+      setHouseZone('');
+      setHouseAddress(house.address);
+    }
+
     setHouseDesc(house.description || '');
     setHouseRules(house.rules || '');
-    setHouseLat((house.latitude || 10.7981).toString());
-    setHouseLng((house.longitude || 106.7029).toString());
+    setHouseLat((house.latitude || 21.0125).toString());
+    setHouseLng((house.longitude || 105.5269).toString());
     setShowHouseForm(true);
   };
 
@@ -427,8 +467,8 @@ export default function OwnerDashboard() {
         alert('Vui lòng chọn file hình ảnh!');
         continue;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB.');
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File quá lớn! Vui lòng chọn ảnh dưới 10MB.');
         continue;
       }
       
@@ -436,7 +476,8 @@ export default function OwnerDashboard() {
       reader.onload = async (ev) => {
         const base64 = ev.target?.result as string;
         try {
-          const finalUrl = await saveImageToIDB(base64);
+          const compressed = await compressImage(base64);
+          const finalUrl = await saveImageToIDB(compressed);
           setFormRoomImages(prev => {
             const hasMain = prev.some(img => img.image_type === 'main');
             return [...prev, {
@@ -696,8 +737,8 @@ export default function OwnerDashboard() {
         alert('Vui lòng chọn file hình ảnh!');
         continue;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB.');
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File quá lớn! Vui lòng chọn ảnh dưới 10MB.');
         continue;
       }
       
@@ -705,7 +746,8 @@ export default function OwnerDashboard() {
       reader.onload = async (ev) => {
         const base64 = ev.target?.result as string;
         try {
-          const finalUrl = await saveImageToIDB(base64);
+          const compressed = await compressImage(base64);
+          const finalUrl = await saveImageToIDB(compressed);
           setBulkRooms(prev => prev.map(r => {
             if (r.id === roomId) {
               const currentImages = (r as any).images || [];
@@ -1199,6 +1241,7 @@ export default function OwnerDashboard() {
       if (profile.status === 'pending') {
         setPendingName(profile.name);
         setAuthMode('pending');
+        loginAs('guest'); // Clear local session!
         setShowMockGoogleModal(false);
         return;
       }
@@ -1206,6 +1249,7 @@ export default function OwnerDashboard() {
       if (profile.status === 'rejected') {
         setPendingName(profile.name);
         setAuthMode('rejected');
+        loginAs('guest'); // Clear local session!
         setShowMockGoogleModal(false);
         return;
       }
@@ -1235,17 +1279,23 @@ export default function OwnerDashboard() {
       alert('Vui lòng chọn file hình ảnh (JPG, PNG, WEBP...)!');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB.');
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File quá lớn! Vui lòng chọn ảnh dưới 10MB.');
       return;
     }
     setUploadFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const base64 = ev.target?.result as string;
-      // Only store preview in state (for UI), actual save happens on submit via IDB
-      setUploadFilePreview(base64);
-      setUploadUrl(base64); // temp: hold base64 for preview; will be replaced with IDB key on submit
+      try {
+        const compressed = await compressImage(base64);
+        setUploadFilePreview(compressed);
+        setUploadUrl(compressed);
+      } catch (err) {
+        console.error(err);
+        setUploadFilePreview(base64);
+        setUploadUrl(base64);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -1750,15 +1800,33 @@ export default function OwnerDashboard() {
 
                 {/* Địa chỉ */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Địa chỉ chi tiết</label>
+                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Địa chỉ chi tiết *</label>
                   <input 
                     type="text" 
                     required
-                    placeholder="Số 123 Nguyễn Văn Cừ, Quận 5..."
+                    placeholder="Ví dụ: Số 123, đường Tân Xã..."
                     value={houseAddress}
                     onChange={(e) => setHouseAddress(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-100 focus:border-[#0075de] rounded-2xl px-4 py-3.5 text-xs font-bold outline-none text-gray-700 shadow-sm"
                   />
+                </div>
+
+                {/* Khu vực */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Khu vực *</label>
+                  <select 
+                    required
+                    value={houseZone}
+                    onChange={(e) => setHouseZone(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-100 focus:border-[#0075de] rounded-2xl px-4 py-3.5 text-xs font-bold outline-none text-gray-700 shadow-sm cursor-pointer"
+                  >
+                    <option value="">-- Chọn khu vực --</option>
+                    <option value="Khu FPT">Khu FPT</option>
+                    <option value="Khu ĐHQG">Khu ĐHQG</option>
+                    <option value="Tân Xã">Tân Xã</option>
+                    <option value="Bình Yên">Bình Yên</option>
+                    <option value="Thạch Hòa">Thạch Hòa</option>
+                  </select>
                 </div>
 
                 {/* Mô tả */}
@@ -2784,6 +2852,7 @@ export default function OwnerDashboard() {
                         setEditingHouse(null);
                         setHouseName('');
                         setHouseAddress('');
+                        setHouseZone('');
                         setHouseDesc('');
                         setHouseRules('');
                         setHouseLat('21.0125');
@@ -3081,13 +3150,19 @@ export default function OwnerDashboard() {
                               const file = e.dataTransfer.files?.[0];
                               if (!file) return;
                               if (!file.type.startsWith('image/')) { alert('Vui lòng thả file hình ảnh!'); return; }
-                              if (file.size > 5 * 1024 * 1024) { alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB.'); return; }
+                              if (file.size > 10 * 1024 * 1024) { alert('File quá lớn! Vui lòng chọn ảnh dưới 10MB.'); return; }
                               setUploadFile(file);
                               const reader = new FileReader();
-                              reader.onload = (ev) => {
+                              reader.onload = async (ev) => {
                                 const b64 = ev.target?.result as string;
-                                setUploadFilePreview(b64);
-                                setUploadUrl(b64);
+                                try {
+                                  const compressed = await compressImage(b64);
+                                  setUploadFilePreview(compressed);
+                                  setUploadUrl(compressed);
+                                } catch (err) {
+                                  setUploadFilePreview(b64);
+                                  setUploadUrl(b64);
+                                }
                               };
                               reader.readAsDataURL(file);
                             }}
@@ -3269,10 +3344,20 @@ export default function OwnerDashboard() {
                             const file = e.dataTransfer.files?.[0];
                             if (!file) return;
                             if (!file.type.startsWith('image/')) { alert('Vui lòng thả file hình ảnh!'); return; }
-                            if (file.size > 5 * 1024 * 1024) { alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB.'); return; }
+                            if (file.size > 10 * 1024 * 1024) { alert('File quá lớn! Vui lòng chọn ảnh dưới 10MB.'); return; }
                             setUploadFile(file);
                             const reader = new FileReader();
-                            reader.onload = (ev) => { const b64 = ev.target?.result as string; setUploadFilePreview(b64); setUploadUrl(b64); };
+                            reader.onload = async (ev) => {
+                              const b64 = ev.target?.result as string;
+                              try {
+                                const compressed = await compressImage(b64);
+                                setUploadFilePreview(compressed);
+                                setUploadUrl(compressed);
+                              } catch (err) {
+                                setUploadFilePreview(b64);
+                                setUploadUrl(b64);
+                              }
+                            };
                             reader.readAsDataURL(file);
                           }}
                           className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 space-y-2 flex flex-col items-center select-none ${
