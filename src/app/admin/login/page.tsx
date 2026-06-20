@@ -11,8 +11,8 @@ import { loginAs } from '@/lib/auth';
 export default function AdminLoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('enhousetrohoalac@gmail.com');
-  const [password, setPassword] = useState('enhouse1811');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
