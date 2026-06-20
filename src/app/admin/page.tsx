@@ -14,7 +14,7 @@ import { db } from '@/lib/db';
 import { BoardingHouse, RoomType, Lead, Appointment, UserProfile } from '@/lib/supabase';
 import Link from 'next/link';
 
-type TabType = 'overview' | 'owners' | 'houses' | 'leads' | 'appointments';
+type TabType = 'overview' | 'pending_owners' | 'owners' | 'houses' | 'leads' | 'appointments';
 
 // ── tiny helpers ──
 const StatusBadge = ({ status }: { status: string }) => {
@@ -184,7 +184,15 @@ export default function AdminDashboard() {
   const scheduledApps = appointments.filter(a => a.status === 'scheduled').length;
 
   const filteredOwners = allOwners
+    .filter(o => o.status !== 'pending')
     .filter(o => ownerFilter === 'all' || o.status === ownerFilter)
+    .filter(o =>
+      o.name.toLowerCase().includes(ownerSearch.toLowerCase()) ||
+      o.email.toLowerCase().includes(ownerSearch.toLowerCase())
+    );
+
+  const filteredPendingOwners = allOwners
+    .filter(o => o.status === 'pending')
     .filter(o =>
       o.name.toLowerCase().includes(ownerSearch.toLowerCase()) ||
       o.email.toLowerCase().includes(ownerSearch.toLowerCase())
@@ -227,15 +235,22 @@ export default function AdminDashboard() {
       {/* ── Tabs ── */}
       <div className="flex border-b border-gray-100 overflow-x-auto gap-0.5">
         {([
-          { key: 'overview',     label: 'Tổng quan' },
-          { key: 'owners',       label: `Chủ Trọ (${allOwners.length})`, badge: pendingCount },
-          { key: 'houses',       label: `Kho Hàng (${houses.length})` },
-          { key: 'leads',        label: `Leads (${leads.length})`, badge: activeLeads },
-          { key: 'appointments', label: `Lịch Hẹn (${scheduledApps})` },
+          { key: 'overview',       label: 'Tổng quan' },
+          { key: 'pending_owners', label: `Duyệt Chủ Trọ (${allOwners.filter(o => o.status === 'pending').length})`, badge: pendingCount },
+          { key: 'owners',         label: `Danh sách Chủ Trọ (${allOwners.filter(o => o.status !== 'pending').length})` },
+          { key: 'houses',         label: `Kho Hàng (${houses.length})` },
+          { key: 'leads',          label: `Leads (${leads.length})`, badge: activeLeads },
+          { key: 'appointments',   label: `Lịch Hẹn (${scheduledApps})` },
         ] as { key: TabType; label: string; badge?: number }[]).map(t => (
           <button
             key={t.key}
-            onClick={() => setActiveTab(t.key)}
+            onClick={() => {
+              setActiveTab(t.key);
+              // Reset owner status filter to all when changing tabs
+              if (t.key === 'owners') {
+                setOwnerFilter('all');
+              }
+            }}
             className={`relative px-6 py-4 text-xs font-black uppercase tracking-wider border-b-2 whitespace-nowrap transition-all ${
               activeTab === t.key
                 ? 'border-[#0075de] text-[#0075de]'
@@ -425,7 +440,6 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-black text-gray-900">Quản lý Chủ Trọ</h3>
               <p className="text-xs font-bold text-gray-400 mt-0.5">
                 {allOwners.filter(o=>o.status==='active').length} active &nbsp;·&nbsp;
-                {pendingCount} chờ duyệt &nbsp;·&nbsp;
                 {allOwners.filter(o=>o.status==='rejected').length} từ chối &nbsp;·&nbsp;
                 {allOwners.filter(o=>o.status==='inactive').length} vô hiệu
               </p>
@@ -445,12 +459,12 @@ export default function AdminDashboard() {
                 className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-2xl outline-none text-sm font-medium text-gray-900 focus:border-[#0075de]/20 transition-all shadow-sm" />
             </div>
             <div className="flex gap-1.5">
-              {(['all','active','pending','rejected','inactive'] as const).map(f => (
+              {(['all','active','rejected','inactive'] as const).map(f => (
                 <button key={f} onClick={() => setOwnerFilter(f)}
                   className={`px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all ${
                     ownerFilter === f ? 'bg-[#0075de] text-white shadow-md shadow-[#0075de]/20' : 'bg-white border border-gray-100 text-gray-500 hover:border-gray-300'
                   }`}>
-                  {f === 'all' ? 'Tất cả' : f === 'active' ? 'Active' : f === 'pending' ? 'Chờ duyệt' : f === 'rejected' ? 'Từ chối' : 'Vô hiệu'}
+                  {f === 'all' ? 'Tất cả' : f === 'active' ? 'Active' : f === 'rejected' ? 'Từ chối' : 'Vô hiệu'}
                 </button>
               ))}
             </div>
@@ -495,20 +509,6 @@ export default function AdminDashboard() {
                         </p>
                       </div>
 
-                      {/* Quick status change for pending */}
-                      {owner.status === 'pending' && (
-                        <div className="flex gap-2 shrink-0">
-                          <button onClick={() => handleOwnerStatusChange(owner.id, 'active')}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95">
-                            <Check className="w-3.5 h-3.5" /> Duyệt
-                          </button>
-                          <button onClick={() => handleOwnerStatusChange(owner.id, 'rejected')}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95">
-                            <X className="w-3.5 h-3.5" /> Từ chối
-                          </button>
-                        </div>
-                      )}
-
                       {/* Edit / Delete */}
                       <div className="flex gap-1.5 shrink-0">
                         {ownerHouses.length > 0 && (
@@ -527,6 +527,83 @@ export default function AdminDashboard() {
                           className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center transition-colors"
                           title="Xóa">
                           <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════ TAB: PENDING OWNERS ══════════════ */}
+      {activeTab === 'pending_owners' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-black text-gray-900">Duyệt Đăng Ký Chủ Trọ</h3>
+              <p className="text-xs font-bold text-gray-400 mt-0.5">
+                Có {pendingCount} tài khoản chủ trọ đang chờ duyệt tham gia hệ thống.
+              </p>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="relative w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input value={ownerSearch} onChange={e => setOwnerSearch(e.target.value)}
+              placeholder="Tìm theo tên hoặc email chờ duyệt..."
+              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-2xl outline-none text-sm font-medium text-gray-900 focus:border-[#0075de]/20 transition-all shadow-sm" />
+          </div>
+
+          {/* Pending Owner List */}
+          <div className="bg-white rounded-[1.75rem] border border-gray-100 shadow-sm overflow-hidden">
+            {filteredPendingOwners.length === 0 ? (
+              <div className="py-20 text-center">
+                <Users className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                <p className="text-xs font-bold text-gray-400">Không có yêu cầu duyệt nào.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {filteredPendingOwners.map(owner => {
+                  const ownerHouses = houses.filter(h => h.owner_id === owner.id);
+                  const ownerRooms  = roomTypes.filter(rt => ownerHouses.map(h => h.id).includes(rt.boarding_house_id));
+                  return (
+                    <div key={owner.id} className="flex items-center gap-5 px-8 py-5 hover:bg-gray-50/60 transition-colors group">
+                      {/* Avatar */}
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 bg-amber-100 text-amber-700">
+                        {owner.name?.charAt(0)?.toUpperCase()}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-black text-gray-900 text-sm">{owner.name}</span>
+                          <StatusBadge status={owner.status} />
+                        </div>
+                        <div className="flex items-center gap-4 text-[11px] font-bold text-gray-400 flex-wrap">
+                          <span>📧 {owner.email}</span>
+                          {(owner as any).phone && <span>📞 {(owner as any).phone}</span>}
+                          <span className="text-[#0075de]">🏠 {ownerHouses.length} nhà trọ</span>
+                          <span className="text-indigo-500">🛏 {ownerRooms.length} loại phòng</span>
+                        </div>
+                        <p className="text-[10px] text-gray-300 font-bold">
+                          Đăng ký: {new Date(owner.created_at).toLocaleString('vi-VN')}
+                        </p>
+                      </div>
+
+                      {/* Quick status change for pending */}
+                      <div className="flex gap-2 shrink-0">
+                        <button onClick={() => handleOwnerStatusChange(owner.id, 'active')}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95">
+                          <Check className="w-3.5 h-3.5" /> Duyệt
+                        </button>
+                        <button onClick={() => handleOwnerStatusChange(owner.id, 'rejected')}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95">
+                          <X className="w-3.5 h-3.5" /> Từ chối
                         </button>
                       </div>
                     </div>
