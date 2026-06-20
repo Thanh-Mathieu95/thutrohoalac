@@ -16,7 +16,7 @@ export const DEMO_USERS: Record<string, AuthUser> = {
     id: 'admin-uuid-0001',
     name: 'Sale Hùng (Môi giới)',
     phone: '0912345678',
-    email: 'admin@salehung.com',
+    email: 'enhousetrohoalac@gmail.com',
     role: 'admin',
     status: 'active',
   },

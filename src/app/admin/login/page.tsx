@@ -11,8 +11,8 @@ import { loginAs } from '@/lib/auth';
 export default function AdminLoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('admin@salehung.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('enhousetrohoalac@gmail.com');
+  const [password, setPassword] = useState('enhouse1811');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
     const emailTrimmed = email.trim().toLowerCase();
     
     // 1. Check Demo Account
-    if (emailTrimmed === 'admin@salehung.com') {
+    if (emailTrimmed === 'enhousetrohoalac@gmail.com' && password === 'enhouse1811') {
       loginAs('admin');
       router.push('/admin');
       router.refresh();

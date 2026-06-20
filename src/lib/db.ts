@@ -116,7 +116,7 @@ const IS_SERVER = typeof window === 'undefined';
 
 // --- SEED DATA FOR LOCALSTORAGE FALLBACK ---
 const MOCK_PROFILES: UserProfile[] = [
-  { id: 'admin-uuid-0001', name: 'Sale Hùng (Môi giới)', email: 'admin@salehung.com', role: 'admin', status: 'active', created_at: new Date().toISOString() },
+  { id: 'admin-uuid-0001', name: 'Sale Hùng (Môi giới)', email: 'enhousetrohoalac@gmail.com', role: 'admin', status: 'active', created_at: new Date().toISOString() },
   { id: 'owner-uuid-nam01', name: 'Anh Nam (Chủ trọ)', email: 'nam@gmail.com', role: 'owner', status: 'active', created_at: new Date().toISOString() },
   { id: 'owner-uuid-lan02', name: 'Chị Lan (Chủ trọ)', email: 'lan@gmail.com', role: 'owner', status: 'active', created_at: new Date().toISOString() },
 ];
