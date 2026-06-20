@@ -352,10 +352,15 @@ export const db = {
     try {
       if (await isSupabaseOnline()) {
         const { data, error } = await supabase.from('boarding_houses').insert(house).select().single();
-        if (!error && data) return data as BoardingHouse;
+        if (!error && data) return data as BoardingHouse; // return sớm
+        if (error) throw error;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('createBoardingHouse Supabase error:', e);
+      throw e;
+    }
 
+    // Chỉ dùng localStorage khi Supabase OFFLINE
     const list = getCollection<BoardingHouse>('boarding_houses');
     const newHouse: BoardingHouse = {
       ...house,
@@ -435,12 +440,15 @@ export const db = {
         }
         const updatedImage = { ...image, image_url: uploadUrl };
         const { data, error } = await supabase.from('boarding_house_images').insert(updatedImage).select().single();
-        if (!error && data) return data as BoardingHouseImage;
+        if (!error && data) return data as BoardingHouseImage; // return sớm
+        if (error) throw error;
       }
     } catch (e) {
-      console.warn('Error adding boarding house image:', e);
+      console.error('addBoardingHouseImage error:', e);
+      throw e;
     }
 
+    // Chỉ dùng localStorage khi Supabase OFFLINE
     const list = getCollection<BoardingHouseImage>('boarding_house_images');
     const newImage: BoardingHouseImage = {
       ...image,
@@ -520,10 +528,15 @@ export const db = {
       if (await isSupabaseOnline()) {
         const serialized = serializeSupabaseRoomType(roomType);
         const { data, error } = await supabase.from('room_types').insert(serialized).select().single();
-        if (!error && data) return deserializeSupabaseRoomType(data);
+        if (!error && data) return deserializeSupabaseRoomType(data); // ✅ return sớm, không chạy xuống localStorage
+        if (error) throw error; // nếu lỗi thật → ném lỗi, không fallback localStorage âm thầm
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('createRoomType Supabase error:', e);
+      throw e; // ném lỗi lên để UI báo lỗi thay vì tạo duplicate
+    }
 
+    // Chỉ dùng localStorage khi Supabase OFFLINE
     const list = getCollection<RoomType>('room_types');
     const newRoomType: RoomType = {
       ...roomType,
@@ -601,12 +614,15 @@ export const db = {
         }
         const updatedImage = { ...image, image_url: uploadUrl };
         const { data, error } = await supabase.from('room_type_images').insert(updatedImage).select().single();
-        if (!error && data) return data as RoomTypeImage;
+        if (!error && data) return data as RoomTypeImage; // return sớm
+        if (error) throw error;
       }
     } catch (e) {
-      console.warn('Error adding room type image:', e);
+      console.error('addRoomTypeImage error:', e);
+      throw e;
     }
 
+    // Chỉ dùng localStorage khi Supabase OFFLINE
     const list = getCollection<RoomTypeImage>('room_type_images');
     const newImage: RoomTypeImage = {
       ...image,
