@@ -106,9 +106,12 @@ export default function AdminDashboard() {
     }
     setOwnerSaving(true);
     try {
-      const profiles = JSON.parse(localStorage.getItem('profiles') || '[]');
       if (editingOwner) {
-        // UPDATE
+        // UPDATE – sync status to Supabase via db layer
+        await db.updateOwnerStatus(editingOwner.id, ownerForm.status as any);
+
+        // Also update name/phone in localStorage for display purposes
+        const profiles = JSON.parse(localStorage.getItem('profiles') || '[]');
         const idx = profiles.findIndex((p: any) => p.id === editingOwner.id);
         if (idx !== -1) {
           profiles[idx] = { ...profiles[idx], ...ownerForm };
@@ -121,12 +124,11 @@ export default function AdminDashboard() {
           name: ownerForm.name,
           email: ownerForm.email,
           phone: ownerForm.phone,
-          role: 'owner',
-          status: ownerForm.status || 'active',
+          role: 'owner' as const,
+          status: (ownerForm.status || 'active') as any,
           created_at: new Date().toISOString(),
         };
-        profiles.push(newProfile);
-        localStorage.setItem('profiles', JSON.stringify(profiles));
+        await db.createOwnerProfile(newProfile);
       }
       setShowOwnerForm(false);
       setEditingOwner(null);
