@@ -273,7 +273,7 @@ export default function AdminDashboard() {
           {/* Stat Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: <Users className="w-5 h-5"/>, label: 'Chủ Trọ', value: allOwners.filter(o => o.status === 'active').length, sub: `${pendingCount} chờ duyệt`, color: 'text-indigo-600 bg-indigo-50', onClick: () => setActiveTab('owners') },
+              { icon: <Users className="w-5 h-5"/>, label: 'Chủ Trọ', value: allOwners.filter(o => o.status === 'active').length, sub: `${pendingCount} chờ duyệt — xem ngay`, color: 'text-indigo-600 bg-indigo-50', onClick: () => pendingCount > 0 ? setActiveTab('pending_owners') : setActiveTab('owners') },
               { icon: <Building2 className="w-5 h-5"/>, label: 'Nhà Trọ', value: houses.length, sub: `${roomTypes.length} loại phòng`, color: 'text-blue-600 bg-blue-50', onClick: () => setActiveTab('houses') },
               { icon: <Phone className="w-5 h-5"/>, label: 'Khách Quan Tâm', value: activeLeads, sub: 'Leads đang chăm sóc', color: 'text-rose-600 bg-rose-50', onClick: () => setActiveTab('leads') },
               { icon: <Calendar className="w-5 h-5"/>, label: 'Lịch Hẹn', value: scheduledApps, sub: 'Sắp đi xem phòng', color: 'text-emerald-600 bg-emerald-50', onClick: () => setActiveTab('appointments') },
@@ -299,11 +299,11 @@ export default function AdminDashboard() {
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-black text-amber-800">{pendingCount} chủ trọ đang chờ duyệt tài khoản</p>
-                  <p className="text-xs font-bold text-amber-600 mt-0.5">Vào tab "Chủ Trọ" để xét duyệt</p>
+                  <p className="text-xs font-black text-amber-800">{pendingCount} chủ trọ đang chờ duyệt tài khoản</p>
+                  <p className="text-xs font-bold text-amber-600 mt-0.5">Vào tab "Duyệt Chủ Trọ" để xét duyệt</p>
                 </div>
               </div>
-              <Button onClick={() => setActiveTab('owners')}
+              <Button onClick={() => setActiveTab('pending_owners')}
                 className="bg-amber-600 hover:bg-amber-700 text-white rounded-2xl px-5 h-10 font-black text-xs uppercase tracking-wider shrink-0">
                 Xem ngay
               </Button>
