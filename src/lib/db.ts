@@ -837,9 +837,17 @@ export const db = {
           .select('*')
           .eq('email', email.trim().toLowerCase())
           .single();
-        if (!error && data) return data as UserProfile;
+        if (error) {
+          if (error.code === 'PGRST116') return null;
+          console.warn('Supabase getProfileByEmail error:', error);
+          return null;
+        }
+        return data as UserProfile;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Error in getProfileByEmail:', e);
+      return null;
+    }
 
     const list = getCollection<UserProfile>('profiles');
     return list.find(p => p.email.trim().toLowerCase() === email.trim().toLowerCase()) || null;
@@ -862,12 +870,15 @@ export const db = {
   },
 
   async createOwnerProfile(profile: UserProfile): Promise<boolean> {
-    // LocalStorage fallback
+    // LocalStorage fallback - upsert instead of conditional push
     const list = getCollection<UserProfile>('profiles');
-    if (!list.some(p => p.email.trim().toLowerCase() === profile.email.trim().toLowerCase())) {
+    const idx = list.findIndex(p => p.email.trim().toLowerCase() === profile.email.trim().toLowerCase());
+    if (idx !== -1) {
+      list[idx] = profile;
+    } else {
       list.push(profile);
-      saveCollection('profiles', list);
     }
+    saveCollection('profiles', list);
 
     // Supabase
     try {
@@ -919,7 +930,9 @@ export const db = {
     try {
       if (await isSupabaseOnline()) {
         const { error } = await supabase.from('profiles').delete().eq('id', ownerId);
-        if (!error) return true;
+        if (error) {
+          console.warn('Supabase deleteOwner returned error:', error);
+        }
       }
     } catch (e) {
       console.warn('Error deleting owner in Supabase:', e);

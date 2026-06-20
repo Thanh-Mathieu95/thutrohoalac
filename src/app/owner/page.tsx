@@ -31,6 +31,7 @@ export default function OwnerDashboard() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [activeTab, setActiveTab] = useState<'houses' | 'roomTypes'>('houses');
   const [loading, setLoading] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Database Data States
   const [myHouses, setMyHouses] = useState<BoardingHouse[]>([]);
@@ -332,6 +333,8 @@ export default function OwnerDashboard() {
           loginAs('guest');
           setCurrentUser(null);
         }
+      } finally {
+        setIsCheckingAuth(false);
       }
     };
     checkGoogleUser();
@@ -346,6 +349,7 @@ export default function OwnerDashboard() {
     };
   }, []);
   const loadOwnerData = async () => {
+    if (isCheckingAuth) return;
     if (!currentUser || currentUser.role !== 'owner') {
       setLoading(false);
       return;
@@ -387,7 +391,7 @@ export default function OwnerDashboard() {
 
   useEffect(() => {
     loadOwnerData();
-  }, [currentUser]);
+  }, [currentUser, isCheckingAuth]);
 
 
   // --- HOUSE ACTIONS ---
@@ -1475,6 +1479,23 @@ export default function OwnerDashboard() {
     const randomUrl = urls[Math.floor(Math.random() * urls.length)];
     setUploadUrl(randomUrl);
   };
+
+  // --- AUTH CHECKING LOADER SCREEN ---
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-[#000c24] flex flex-col items-center justify-center gap-4 relative overflow-hidden font-sans">
+        {/* Glow ambient */}
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+        
+        <div className="relative z-10 text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-[#0075de] animate-spin mx-auto animate-duration-1000" />
+          <p className="text-slate-400 font-black tracking-widest uppercase text-[10px]">Đang xác thực tài khoản chủ trọ...</p>
+        </div>
+      </div>
+    );
+  }
 
   // --- GUEST OR UNAUTHORIZED SHIELD ---
   if (!currentUser || currentUser.role !== 'owner') {
