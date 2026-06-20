@@ -20,20 +20,31 @@ const GENDER_OPTIONS = [
 
 const AMENITY_OPTIONS = [
   { value: '', label: 'Tất cả tiện nghi' },
+  // Thiết bị
   { value: 'Điều hòa', label: 'Điều hòa' },
+  { value: 'Nóng lạnh', label: 'Nóng lạnh' },
   { value: 'Tủ lạnh', label: 'Tủ lạnh' },
   { value: 'Máy giặt', label: 'Máy giặt' },
+  // Bếp
+  { value: 'Bếp tách riêng', label: 'Bếp tách riêng' },
+  { value: 'Bếp chung', label: 'Bếp chung' },
+  { value: 'Bếp nấu ăn', label: 'Bếp nấu ăn' },
+  // Không gian
   { value: 'Ban công', label: 'Ban công' },
-  { value: 'Nóng lạnh', label: 'Nóng lạnh' },
-  { value: 'WiFi', label: 'WiFi' },
+  { value: 'Sân phơi đồ', label: 'Sân phơi đồ' },
+  { value: 'Thang máy', label: 'Thang máy' },
+  // Nội thất
+  { value: 'Nội thất cơ bản', label: 'Nội thất cơ bản' },
+  { value: 'Nội thất đầy đủ', label: 'Nội thất đầy đủ' },
+  { value: 'Sofa', label: 'Sofa' },
+  // An ninh & tiện ích
+  { value: 'Wifi', label: 'Wifi' },
   { value: 'Gửi xe', label: 'Gửi xe' },
   { value: 'Camera an ninh', label: 'Camera an ninh' },
-  { value: 'Sân phơi đồ', label: 'Sân phơi đồ' },
-  { value: 'Bếp chung', label: 'Bếp chung' },
-  { value: 'Tự nấu ăn', label: 'Tự nấu ăn' },
-  { value: 'Thang máy', label: 'Thang máy' },
+  { value: 'Khóa vân tay', label: 'Khóa vân tay' },
   { value: 'Cửa khóa thẻ từ', label: 'Cửa khóa thẻ từ' },
   { value: 'Vệ sinh khép kín', label: 'Vệ sinh khép kín' },
+  { value: 'Giờ giấc tự do', label: 'Giờ giấc tự do' },
 ];
 
 const PRICE_OPTIONS = [

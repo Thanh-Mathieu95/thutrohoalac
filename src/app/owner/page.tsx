@@ -374,7 +374,15 @@ export default function OwnerDashboard() {
           rt.utilities.forEach(ut => existingUtils.add(ut));
         }
       });
-      const defaultUtils = ['Điều hòa', 'Nóng lạnh', 'Tủ lạnh', 'Máy giặt', 'Bếp nấu ăn', 'Sofa', 'Kệ tivi', 'Ban công', 'Wifi', 'Khóa vân tay', 'Giờ giấc tự do'];
+      const defaultUtils = [
+        'Điều hòa', 'Nóng lạnh', 'Tủ lạnh', 'Máy giặt',
+        'Bếp tách riêng', 'Bếp chung', 'Bếp nấu ăn',
+        'Sofa', 'Kệ tivi', 'Ban công',
+        'Wifi', 'Khóa vân tay', 'Cửa khóa thẻ từ',
+        'Gửi xe', 'Camera an ninh', 'Sân phơi đồ',
+        'Thang máy', 'Vệ sinh khép kín', 'Giờ giấc tự do',
+        'Nội thất cơ bản', 'Nội thất đầy đủ',
+      ];
       const mergedUtils = Array.from(new Set([...defaultUtils, ...Array.from(existingUtils)]));
       setCustomUtilities(mergedUtils);
 
