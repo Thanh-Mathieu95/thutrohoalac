@@ -69,11 +69,12 @@ const ROOM_TYPE_OPTIONS = [
 
 const AREA_OPTIONS = [
   { value: '', label: 'Tất cả khu vực' },
-  { value: 'FPT', label: '📍 Khu FPT' },
-  { value: 'ĐHQG', label: '📍 Khu ĐHQG' },
+  { value: 'Thạch Hòa', label: '📍 Thạch Hòa' },
   { value: 'Tân Xã', label: '📍 Tân Xã' },
   { value: 'Bình Yên', label: '📍 Bình Yên' },
-  { value: 'Thạch Hòa', label: '📍 Thạch Hòa' }
+  { value: 'Sơn Tây', label: '📍 Sơn Tây' },
+  { value: 'Hạ Bằng', label: '📍 Hạ Bằng' },
+  { value: 'Bắc Phú Cát', label: '📍 Bắc Phú Cát' },
 ];
 
 interface HeroSearchFormProps {
@@ -81,8 +82,8 @@ interface HeroSearchFormProps {
   setSearchTerm: (val: string) => void;
   area: string;
   setArea: (val: string) => void;
-  amenity: string;
-  setAmenity: (val: string) => void;
+  amenities: string[];
+  setAmenities: (val: string[]) => void;
   price: string;
   setPrice: (val: string) => void;
 }
@@ -92,8 +93,8 @@ function HeroSearchForm({
   setSearchTerm,
   area,
   setArea,
-  amenity,
-  setAmenity,
+  amenities,
+  setAmenities,
   price,
   setPrice
 }: HeroSearchFormProps) {
@@ -230,7 +231,7 @@ function HeroSearchForm({
         {/* Divider */}
         <div className="hidden lg:block w-px h-8 bg-slate-100 self-center" />
 
-        {/* Section 3: Amenity Dropdown */}
+        {/* Section 3: Amenity Checkbox Panel */}
         <div 
           onClick={() => toggleDropdown('amenity')}
           className={`flex flex-row items-center gap-2 px-4 py-3 lg:py-0 lg:h-full rounded-2xl lg:rounded-none cursor-pointer transition-all duration-300 relative min-w-0 border border-slate-100 lg:border-none lg:px-3.5 ${
@@ -247,30 +248,75 @@ function HeroSearchForm({
               Tiện nghi
             </span>
             <span className="text-xs xl:text-sm font-bold text-slate-700 truncate">
-              {AMENITY_OPTIONS.find(o => o.value === amenity)?.label || 'Tất cả tiện nghi'}
+              {amenities.length === 0
+                ? 'Tất cả tiện nghi'
+                : amenities.length === 1
+                  ? amenities[0]
+                  : `${amenities.length} tiện nghi`}
             </span>
           </div>
           <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 ml-1" />
 
           {openDropdown === 'amenity' && (
-            <div className="absolute top-[105%] left-0 right-0 lg:w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-1 duration-200">
-              {AMENITY_OPTIONS.map((opt) => (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="absolute top-[105%] left-0 lg:left-auto lg:right-0 lg:w-72 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-1 duration-200 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-50">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Chọn tiện nghi</span>
+                {amenities.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAmenities([])}
+                    className="text-[10px] font-black text-[#0075de] hover:underline"
+                  >
+                    Xóa tất cả
+                  </button>
+                )}
+              </div>
+              {/* Checkbox list */}
+              <div className="max-h-64 overflow-y-auto p-2 space-y-0.5">
+                {AMENITY_OPTIONS.filter(o => o.value !== '').map((opt) => {
+                  const checked = amenities.includes(opt.value);
+                  return (
+                    <label
+                      key={opt.value}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-colors hover:bg-blue-50/40 ${
+                        checked ? 'bg-blue-50/30' : ''
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          if (checked) {
+                            setAmenities(amenities.filter(a => a !== opt.value));
+                          } else {
+                            setAmenities([...amenities, opt.value]);
+                          }
+                        }}
+                        className="w-4 h-4 rounded accent-[#0075de] cursor-pointer shrink-0"
+                      />
+                      <span className={`text-xs font-semibold ${
+                        checked ? 'text-[#0075de] font-bold' : 'text-slate-600'
+                      }`}>
+                        {opt.label}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {/* Footer */}
+              <div className="px-4 py-3 border-t border-slate-50">
                 <button
                   type="button"
-                  key={opt.value}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setAmenity(opt.value);
-                    setOpenDropdown(null);
-                    setFocusedField(null);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-xs font-semibold rounded-xl transition-colors hover:bg-blue-50/40 hover:text-[#0075de] ${
-                    amenity === opt.value ? 'text-[#0075de] bg-blue-50/20' : 'text-slate-600'
-                  }`}
+                  onClick={() => { setOpenDropdown(null); setFocusedField(null); }}
+                  className="w-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-black py-2.5 rounded-xl transition-colors"
                 >
-                  {opt.label}
+                  Áp dụng{amenities.length > 0 ? ` (${amenities.length})` : ''}
                 </button>
-              ))}
+              </div>
             </div>
           )}
         </div>
@@ -374,7 +420,7 @@ function HomeContent() {
   // Shared filters
   const [gender, setGender] = useState('');
   const [area, setArea] = useState('');
-  const [amenity, setAmenity] = useState('');
+  const [amenities, setAmenities] = useState<string[]>([]);
   const [price, setPrice] = useState('');
 
   // Room-tab-only filter
@@ -388,7 +434,7 @@ function HomeContent() {
       setIsTyping(false);
     }, 250);
     return () => clearTimeout(timer);
-  }, [searchTerm, area, amenity, price, activeTab]);
+  }, [searchTerm, area, amenities, price, activeTab]);
 
 
   useEffect(() => {
@@ -436,7 +482,7 @@ function HomeContent() {
   const clearFilters = () => {
     setGender('');
     setArea('');
-    setAmenity('');
+    setAmenities([]);
     setPrice('');
     setRoomTypeFilter('');
     setSearchTerm('');
@@ -468,7 +514,7 @@ function HomeContent() {
     else if (price === '7-10') matchesPrice = priceFrom >= 7000000 && priceFrom < 10000000;
     else if (price === 'over10') matchesPrice = priceFrom >= 10000000;
 
-    const matchesAmenity = !amenity || houseRts.some(rt => rt.utilities.includes(amenity));
+    const matchesAmenity = amenities.length === 0 || amenities.every(a => houseRts.some(rt => rt.utilities.includes(a)));
 
     let matchesGender = true;
     if (gender === 'male') matchesGender = houseRts.some(rt => rt.id === 1 || rt.id === 8);
@@ -503,7 +549,7 @@ function HomeContent() {
     else if (price === '7-10') matchesPrice = rt.price_from >= 7000000 && rt.price_from < 10000000;
     else if (price === 'over10') matchesPrice = rt.price_from >= 10000000;
 
-    const matchesAmenity = !amenity || rt.utilities.includes(amenity);
+    const matchesAmenity = amenities.length === 0 || amenities.every(a => rt.utilities.includes(a));
 
     let matchesGender = true;
     if (gender === 'male') matchesGender = rt.id === 1 || rt.id === 8;
@@ -515,7 +561,7 @@ function HomeContent() {
     return matchesSearch && matchesArea && matchesPrice && matchesAmenity && matchesGender && matchesType;
   });
 
-  const hasActiveFilters = gender || area || amenity || price || roomTypeFilter || searchTerm;
+  const hasActiveFilters = gender || area || amenities.length > 0 || price || roomTypeFilter || searchTerm;
 
   return (
     <main className="min-h-screen bg-[#f6f5f4] text-[#31302e] font-sans">
@@ -548,8 +594,8 @@ function HomeContent() {
               setSearchTerm={setSearchTerm}
               area={area}
               setArea={setArea}
-              amenity={amenity}
-              setAmenity={setAmenity}
+              amenities={amenities}
+              setAmenities={setAmenities}
               price={price}
               setPrice={setPrice}
             />
@@ -747,14 +793,66 @@ function HomeContent() {
               </ul>
             </div>
             <div>
-              <h4 className="font-black text-slate-800 text-[11px] uppercase tracking-widest mb-4">Sale Hùng (Môi giới)</h4>
-              <p className="text-xs text-slate-400 font-bold leading-relaxed">
-                Nền tảng tìm kiếm và ký gửi phòng trọ số 1 tại Hòa Lạc. Tối ưu hóa quy trình kết nối khách thuê trực tiếp với chủ trọ.
-              </p>
+              <h4 className="font-black text-slate-800 text-[11px] uppercase tracking-widest mb-4">Liên hệ Môi giới</h4>
+              <ul className="space-y-3 text-xs text-slate-400 font-bold">
+                <li>
+                  <a
+                    href="mailto:enhousetrohoalac@gmail.com"
+                    className="flex items-center gap-2 hover:text-slate-900 transition-colors group"
+                  >
+                    <span className="w-5 h-5 bg-red-50 rounded-full flex items-center justify-center shrink-0 group-hover:bg-red-100 transition-colors">
+                      <svg className="w-3 h-3 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </span>
+                    enhousetrohoalac@gmail.com
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="tel:0392788026"
+                    className="flex items-center gap-2 hover:text-slate-900 transition-colors group"
+                  >
+                    <span className="w-5 h-5 bg-green-50 rounded-full flex items-center justify-center shrink-0 group-hover:bg-green-100 transition-colors">
+                      <svg className="w-3 h-3 text-green-600" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                    </span>
+                    0392 788 026 (Hotline / Zalo)
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.tiktok.com/@trohoalac1?is_from_webapp=1&sender_device=pc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 hover:text-slate-900 transition-colors group"
+                  >
+                    <span className="w-5 h-5 bg-slate-800 rounded-full flex items-center justify-center shrink-0 group-hover:bg-black transition-colors">
+                      <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z"/></svg>
+                    </span>
+                    TikTok: @trohoalac1
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.facebook.com/profile.php?id=61590882011264"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 hover:text-slate-900 transition-colors group"
+                  >
+                    <span className="w-5 h-5 bg-blue-50 rounded-full flex items-center justify-center shrink-0 group-hover:bg-blue-100 transition-colors">
+                      <svg className="w-3 h-3 text-blue-600" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </span>
+                    Facebook: En House Trọ Hòa Lạc
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-slate-400">
             <span>© 2026 En House Hòa Lạc - Sale Hùng. Bảo lưu mọi quyền.</span>
+            <div className="flex items-center gap-3">
+              <a href="mailto:enhousetrohoalac@gmail.com" className="hover:text-slate-700 transition-colors">enhousetrohoalac@gmail.com</a>
+              <span>·</span>
+              <a href="tel:0392788026" className="hover:text-slate-700 transition-colors">0392 788 026</a>
+            </div>
           </div>
         </div>
       </footer>

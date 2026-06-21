@@ -174,11 +174,12 @@ function RoomsContent() {
                 className="w-full text-xs font-bold outline-none bg-transparent text-gray-700 cursor-pointer"
               >
                 <option value="all">Khu vực: Tất cả</option>
-                <option value="FPT">📍 Khu FPT</option>
-                <option value="ĐHQG">📍 Khu ĐHQG</option>
+                <option value="Thạch Hòa">📍 Thạch Hòa</option>
                 <option value="Tân Xã">📍 Tân Xã</option>
                 <option value="Bình Yên">📍 Bình Yên</option>
-                <option value="Thạch Hòa">📍 Thạch Hòa</option>
+                <option value="Sơn Tây">📍 Sơn Tây</option>
+                <option value="Hạ Bằng">📍 Hạ Bằng</option>
+                <option value="Bắc Phú Cát">📍 Bắc Phú Cát</option>
               </select>
             </div>
 

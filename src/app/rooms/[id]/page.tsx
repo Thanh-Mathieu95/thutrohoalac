@@ -223,6 +223,9 @@ export default function RoomDetailPage() {
 
 
 
+  // Broker contact info (fixed)
+  const brokerPhone = '0392788026';
+  const brokerName = 'Nguyễn Đức Hùng';
   const ownerPhone = owner?.phone || '0912345678';
   const ownerName = owner?.name || 'Sale Hùng';
 
@@ -631,13 +634,13 @@ export default function RoomDetailPage() {
                       <Calendar className="w-4 h-4" /> Đặt lịch xem phòng trọ
                     </Button>
                     
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <Button 
                         asChild 
                         variant="outline"
                         className="border border-[#e6e6e6] text-gray-700 font-black h-12 rounded-full text-[10px] uppercase tracking-wider hover:bg-slate-50 flex items-center justify-center gap-1.5 active:scale-95 transition-all bg-white shadow-sm"
                       >
-                        <a href={`tel:${ownerPhone}`}>
+                        <a href={`tel:${brokerPhone}`}>
                           <Phone className="w-3.5 h-3.5 text-[#0075de]" /> Gọi điện
                         </a>
                       </Button>
@@ -646,29 +649,28 @@ export default function RoomDetailPage() {
                         variant="outline"
                         className="border border-[#e6e6e6] text-gray-700 font-black h-12 rounded-full text-[10px] uppercase tracking-wider hover:bg-slate-50 flex items-center justify-center gap-1.5 active:scale-95 transition-all bg-white shadow-sm"
                       >
-                        <a href={`https://zalo.me/${ownerPhone.replace(/[\s.-]/g, '')}`} target="_blank" rel="noopener noreferrer">
+                        <a href={`https://zalo.me/${brokerPhone}`} target="_blank" rel="noopener noreferrer">
                           <MessageSquare className="w-3.5 h-3.5 text-sky-500 fill-sky-500/10" /> Nhắn Zalo
+                        </a>
+                      </Button>
+                      <Button 
+                        asChild 
+                        variant="outline"
+                        className="border border-[#e6e6e6] text-gray-700 font-black h-12 rounded-full text-[10px] uppercase tracking-wider hover:bg-slate-50 flex items-center justify-center gap-1.5 active:scale-95 transition-all bg-white shadow-sm"
+                      >
+                        <a href="https://www.facebook.com/profile.php?id=61590882011264" target="_blank" rel="noopener noreferrer">
+                          <svg className="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Facebook
                         </a>
                       </Button>
                     </div>
                   </div>
 
                   <p className="text-center text-[10px] font-bold text-gray-400 mt-6 uppercase tracking-wider">
-                    {owner ? `Liên hệ chủ trọ: ${ownerName} (${ownerPhone})` : `Hotline Môi giới: 0912.345.678 (${ownerName})`}
+                    Liên hệ môi giới: {brokerName} ({brokerPhone})
                   </p>
                 </CardContent>
               </Card>
 
-              {/* Security Box */}
-              <div className="border border-[#e6e6e6] rounded-xl p-6 bg-white shadow-sm flex gap-4 items-center">
-                <div className="text-2xl">🛡️</div>
-                <div>
-                  <h4 className="font-black text-gray-900 text-xs uppercase tracking-wider">Bảo mật thông tin</h4>
-                  <p className="text-[11px] font-bold text-gray-400 mt-0.5 leading-relaxed">
-                    Khách thuê và chủ nhà được bảo mật thông tin liên lạc. Môi giới sẽ trực tiếp tư vấn và khớp nối lịch hẹn.
-                  </p>
-                </div>
-              </div>
 
             </div>
           </div>

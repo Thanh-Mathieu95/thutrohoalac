@@ -459,7 +459,7 @@ export default function OwnerDashboard() {
     setHouseName(house.name);
     
     // Parse address and zone
-    const zones = ['Khu FPT', 'Khu ĐHQG', 'Tân Xã', 'Bình Yên', 'Thạch Hòa'];
+    const zones = ['Thạch Hòa', 'Tân Xã', 'Bình Yên', 'Sơn Tây', 'Hạ Bằng', 'Bắc Phú Cát'];
     const detectedZone = zones.find(z => house.address.endsWith(`, ${z}`));
     if (detectedZone) {
       setHouseZone(detectedZone);
@@ -1907,11 +1907,12 @@ export default function OwnerDashboard() {
                     className="w-full bg-gray-50 border border-gray-100 focus:border-[#0075de] rounded-2xl px-4 py-3.5 text-xs font-bold outline-none text-gray-700 shadow-sm cursor-pointer"
                   >
                     <option value="">-- Chọn khu vực --</option>
-                    <option value="Khu FPT">Khu FPT</option>
-                    <option value="Khu ĐHQG">Khu ĐHQG</option>
+                    <option value="Thạch Hòa">Thạch Hòa</option>
                     <option value="Tân Xã">Tân Xã</option>
                     <option value="Bình Yên">Bình Yên</option>
-                    <option value="Thạch Hòa">Thạch Hòa</option>
+                    <option value="Sơn Tây">Sơn Tây</option>
+                    <option value="Hạ Bằng">Hạ Bằng</option>
+                    <option value="Bắc Phú Cát">Bắc Phú Cát</option>
                   </select>
                 </div>
 
