@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase';
-import { ShieldCheck, Mail, Lock, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { loginAs } from '@/lib/auth';
@@ -13,37 +12,36 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Trim and lowercase email input
-    const emailTrimmed = email.trim().toLowerCase();
-    
-    // 1. Check Demo Account
-    if (emailTrimmed === 'enhousetrohoalac@gmail.com' && password === 'enhouse1811') {
+    setError('');
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Đăng nhập thất bại!');
+        return;
+      }
+
+      // Đăng nhập thành công → set demo user cho navbar
       loginAs('admin');
       router.push('/admin');
       router.refresh();
-      setIsLoading(false);
-      return;
-    }
-
-    // 2. Fallback to Supabase Auth
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailTrimmed,
-        password,
-      });
-
-      if (error) throw error;
-
-      // Successful login
-      router.push('/admin');
-      router.refresh();
-    } catch (error: any) {
-      alert('Lỗi đăng nhập Admin: ' + error.message);
+    } catch {
+      setError('Không thể kết nối server. Vui lòng thử lại!');
     } finally {
       setIsLoading(false);
     }
@@ -105,6 +103,14 @@ export default function AdminLoginPage() {
                   />
                 </div>
               </div>
+
+              {/* Error message */}
+              {error && (
+                <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <p className="text-xs font-bold text-red-400">{error}</p>
+                </div>
+              )}
 
               <Button 
                 type="submit"

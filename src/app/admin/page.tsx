@@ -8,11 +8,13 @@ import {
   Trash2, Edit2, Check, X, Plus, Search, RefreshCw,
   ChevronDown, ChevronUp, Eye, Building2, Loader2,
   UserCheck, UserX, Clock, TrendingUp, Mail,
-  ArrowUpRight, MoreVertical, Save
+  ArrowUpRight, MoreVertical, Save, LogOut
 } from 'lucide-react';
 import { db } from '@/lib/db';
 import { BoardingHouse, RoomType, Lead, Appointment, UserProfile } from '@/lib/supabase';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { logout } from '@/lib/auth';
 
 type TabType = 'overview' | 'pending_owners' | 'owners' | 'houses' | 'leads' | 'appointments';
 
@@ -35,8 +37,15 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [loading, setLoading] = useState(true);
+
+  const handleLogout = async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    logout();
+    router.push('/admin/login');
+  };
 
   // ── Data ──
   const [houses,       setHouses]       = useState<BoardingHouse[]>([]);
@@ -229,9 +238,18 @@ export default function AdminDashboard() {
           <h2 className="text-3xl font-heading font-black text-gray-900 tracking-tight">Dashboard Quản Trị</h2>
           <p className="text-xs text-gray-400 font-bold mt-1">Quản lý chủ trọ, nhà trọ, khách hàng và lịch hẹn.</p>
         </div>
-        <Button onClick={loadData} variant="outline" className="rounded-xl gap-1.5 font-bold text-xs hover:border-gray-900 h-10">
-          <RefreshCw className="w-3.5 h-3.5" /> Làm mới
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={loadData} variant="outline" className="rounded-xl gap-1.5 font-bold text-xs hover:border-gray-900 h-10">
+            <RefreshCw className="w-3.5 h-3.5" /> Làm mới
+          </Button>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="rounded-xl gap-1.5 font-bold text-xs text-red-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 h-10"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Đăng xuất
+          </Button>
+        </div>
       </div>
 
       {/* ── Tabs ── */}

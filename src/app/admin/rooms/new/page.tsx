@@ -102,15 +102,29 @@ export default function NewRoomPage() {
     );
   };
 
+  const MAX_IMAGES = 6;
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    if (images.length >= MAX_IMAGES) {
+      alert(`Chỉ được đăng tối đa ${MAX_IMAGES} ảnh!`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     setIsUploading(true);
     const newImages = [...images];
+    const remaining = MAX_IMAGES - newImages.length;
+    const filesToProcess = Array.from(files).slice(0, remaining);
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    if (files.length > remaining) {
+      alert(`Bạn chỉ có thể thêm ${remaining} ảnh nữa (giới hạn ${MAX_IMAGES} ảnh). Chỉ ${remaining} ảnh đầu tiên sẽ được tải lên.`);
+    }
+
+    for (let i = 0; i < filesToProcess.length; i++) {
+      const file = filesToProcess[i];
       if (!file.type.startsWith('image/')) {
         alert('Vui lòng chọn file hình ảnh!');
         continue;
@@ -445,21 +459,33 @@ export default function NewRoomPage() {
               </h3>
               
               <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-100 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-gray-50 hover:border-brand/20 transition-all cursor-pointer group"
+                onClick={() => images.length < MAX_IMAGES ? fileInputRef.current?.click() : undefined}
+                className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center transition-all ${
+                  images.length >= MAX_IMAGES
+                    ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
+                    : 'border-gray-100 hover:bg-gray-50 hover:border-brand/20 cursor-pointer group'
+                }`}
               >
                 {isUploading ? (
                   <div className="flex flex-col items-center justify-center">
                     <Loader2 className="w-8 h-8 text-brand animate-spin mb-2" />
                     <p className="text-sm font-bold text-gray-700">Đang xử lý ảnh...</p>
                   </div>
+                ) : images.length >= MAX_IMAGES ? (
+                  <>
+                    <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-300 mb-3">
+                      <Plus className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-500">Đã đạt giới hạn {MAX_IMAGES} ảnh</p>
+                    <p className="text-[11px] text-gray-400 mt-1">Xóa ảnh cũ để tải ảnh mới</p>
+                  </>
                 ) : (
                   <>
                     <div className="w-14 h-14 bg-gray-50 group-hover:bg-white rounded-2xl flex items-center justify-center text-gray-300 group-hover:text-brand transition-all mb-3 shadow-sm">
                       <Plus className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-gray-700">Tải ảnh lên</p>
-                    <p className="text-[11px] text-gray-400 mt-1">Hỗ trợ JPG, PNG (Max 10MB)</p>
+                    <p className="text-[11px] text-gray-400 mt-1">Hỗ trợ JPG, PNG (Max 10MB) • Còn {MAX_IMAGES - images.length}/{MAX_IMAGES} ảnh</p>
                   </>
                 )}
               </div>

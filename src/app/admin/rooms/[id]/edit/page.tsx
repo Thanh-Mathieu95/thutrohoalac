@@ -146,13 +146,28 @@ export default function EditRoomPage() {
     );
   };
 
+  const MAX_IMAGES = 6;
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    if (roomImages.length >= MAX_IMAGES) {
+      alert(`Chỉ được đăng tối đa ${MAX_IMAGES} ảnh!`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     setIsUploading(true);
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    const remaining = MAX_IMAGES - roomImages.length;
+    const filesToProcess = Array.from(files).slice(0, remaining);
+
+    if (files.length > remaining) {
+      alert(`Bạn chỉ có thể thêm ${remaining} ảnh nữa (giới hạn ${MAX_IMAGES} ảnh). Chỉ ${remaining} ảnh đầu tiên sẽ được tải lên.`);
+    }
+
+    for (let i = 0; i < filesToProcess.length; i++) {
+      const file = filesToProcess[i];
       if (!file.type.startsWith('image/')) {
         alert('Vui lòng chọn file hình ảnh!');
         continue;
@@ -444,18 +459,27 @@ export default function EditRoomPage() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
               <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-200 hover:border-[#0075de] rounded-2xl p-6 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 bg-gray-50/50"
+                onClick={() => roomImages.length < MAX_IMAGES ? fileInputRef.current?.click() : undefined}
+                className={`border-2 border-dashed rounded-2xl p-6 flex items-center justify-center gap-2 transition-all ${
+                  roomImages.length >= MAX_IMAGES
+                    ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
+                    : 'border-gray-200 hover:border-[#0075de] cursor-pointer active:scale-95 bg-gray-50/50'
+                }`}
               >
                 {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 text-[#0075de] animate-spin" />
                     <span className="text-xs font-bold text-gray-500">Đang tải ảnh lên...</span>
                   </>
+                ) : roomImages.length >= MAX_IMAGES ? (
+                  <>
+                    <Plus className="w-4 h-4 text-gray-300" />
+                    <span className="text-xs font-bold text-gray-400">Đã đạt giới hạn {MAX_IMAGES} ảnh — Xóa ảnh cũ để thêm mới</span>
+                  </>
                 ) : (
                   <>
                     <Plus className="w-4 h-4 text-[#0075de]" />
-                    <span className="text-xs font-bold text-[#0075de]">Tải ảnh thực tế mới lên</span>
+                    <span className="text-xs font-bold text-[#0075de]">Tải ảnh thực tế mới lên • Còn {MAX_IMAGES - roomImages.length}/{MAX_IMAGES} ảnh</span>
                   </>
                 )}
               </div>
