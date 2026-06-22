@@ -459,7 +459,7 @@ export default function OwnerDashboard() {
     setHouseName(house.name);
     
     // Parse address and zone
-    const zones = ['Thạch Hòa', 'Tân Xã', 'Bình Yên', 'Sơn Tây', 'Hạ Bằng', 'Bắc Phú Cát'];
+    const zones = ['Thạch Hòa', 'Tân Xã', 'Bình Yên', 'Sơn Tây', 'Hạ Bằng', 'Bắc Phú Cát', 'Phú Hữu'];
     const detectedZone = zones.find(z => house.address.endsWith(`, ${z}`));
     if (detectedZone) {
       setHouseZone(detectedZone);
@@ -1913,6 +1913,7 @@ export default function OwnerDashboard() {
                     <option value="Sơn Tây">Sơn Tây</option>
                     <option value="Hạ Bằng">Hạ Bằng</option>
                     <option value="Bắc Phú Cát">Bắc Phú Cát</option>
+                    <option value="Phú Hữu">Phú Hữu</option>
                   </select>
                 </div>
 

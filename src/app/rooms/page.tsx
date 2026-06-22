@@ -180,6 +180,7 @@ function RoomsContent() {
                 <option value="Sơn Tây">📍 Sơn Tây</option>
                 <option value="Hạ Bằng">📍 Hạ Bằng</option>
                 <option value="Bắc Phú Cát">📍 Bắc Phú Cát</option>
+                <option value="Phú Hữu">📍 Phú Hữu</option>
               </select>
             </div>
 

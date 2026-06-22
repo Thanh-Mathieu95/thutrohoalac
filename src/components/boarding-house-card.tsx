@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { MapPin, Home, Star, ChevronRight } from 'lucide-react';
+import { MapPin, Home, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { BoardingHouse } from '@/lib/supabase';
 import { IDBImage } from '@/components/idb-image';
@@ -22,12 +22,6 @@ export function BoardingHouseCard({
   priceFrom,
   firstRoomId,
 }: BoardingHouseCardProps) {
-
-  // Static rating per house id
-  const getRating = (id: number) => {
-    const ratings: Record<number, string> = { 1: '4.8', 2: '4.7', 3: '4.9', 4: '4.6' };
-    return ratings[id] || '4.5';
-  };
 
   // Short location tag
   const getLocation = (address: string) => {
@@ -53,12 +47,6 @@ export function BoardingHouseCard({
         <div className="absolute top-3 left-3 bg-[#0075de]/90 text-white backdrop-blur-sm px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider z-10 shadow-sm flex items-center gap-1">
           <Home className="w-3 h-3" />
           {roomCount} kiểu phòng
-        </div>
-
-        {/* Rating badge - top right */}
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-[10px] font-black text-slate-700 z-10 shadow-sm flex items-center gap-1">
-          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-          {getRating(house.id)}
         </div>
 
         {/* Gradient overlay at bottom */}

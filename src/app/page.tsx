@@ -75,6 +75,7 @@ const AREA_OPTIONS = [
   { value: 'Sơn Tây', label: '📍 Sơn Tây' },
   { value: 'Hạ Bằng', label: '📍 Hạ Bằng' },
   { value: 'Bắc Phú Cát', label: '📍 Bắc Phú Cát' },
+  { value: 'Phú Hữu', label: '📍 Phú Hữu' },
 ];
 
 interface HeroSearchFormProps {
