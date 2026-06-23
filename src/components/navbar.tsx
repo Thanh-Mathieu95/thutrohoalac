@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, Menu, User, LogOut, LayoutDashboard, MapPin, X, Shield, Users, Lock } from 'lucide-react';
+import { Search, Menu, User, LogOut, LayoutDashboard, MapPin } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
-import { getCurrentUser, logout, loginAs, AuthUser } from '@/lib/auth';
+import { getCurrentUser, logout, AuthUser } from '@/lib/auth';
 
 // Suspended search bar nested component to avoid App Router build de-opt
 function SearchBar() {
@@ -56,7 +56,6 @@ export function Navbar() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -160,17 +159,15 @@ export function Navbar() {
                 </div>
               ) : (
                 <div className="space-y-1 py-1">
-                  <button 
-                    onClick={() => {
-                      setShowDropdown(false);
-                      setShowLoginModal(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-black text-slate-800 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                  <Link 
+                    href="/owner?mode=login"
+                    onClick={() => setShowDropdown(false)}
+                    className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-black text-slate-800 hover:bg-slate-50 transition-colors text-left block"
                   >
                     Đăng nhập
-                  </button>
+                  </Link>
                   <Link 
-                    href="/owner" 
+                    href="/owner?mode=register" 
                     onClick={() => setShowDropdown(false)}
                     className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors text-left block"
                   >
@@ -197,93 +194,7 @@ export function Navbar() {
               )}
             </div>
           )}
-        </div>
-
-      </div>
-
-      {/* Elegant, modern Demo Login Modal */}
-      {showLoginModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-md p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-200 text-left relative">
-            <button 
-              onClick={() => setShowLoginModal(false)}
-              className="absolute right-5 top-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-blue-50 text-[#0075de] rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-                <Lock className="w-5 h-5" />
-              </div>
-              <h3 className="text-lg font-black text-slate-800 tracking-tight">Đăng nhập Demo</h3>
-              <p className="text-xs text-slate-400 font-semibold">Chọn tài khoản mẫu để trải nghiệm nhanh các tính năng</p>
-            </div>
-
-            <div className="space-y-2.5">
-              {/* Option 1: Admin */}
-              <button
-                onClick={() => {
-                  loginAs('admin');
-                  setShowLoginModal(false);
-                  router.push('/admin');
-                }}
-                className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl border border-slate-100 hover:border-blue-100 hover:bg-blue-50/20 transition-all text-left group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <Shield className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-slate-800">Môi giới (Admin)</h4>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Duyệt ảnh, xem Leads, quản lý lịch hẹn</p>
-                </div>
-              </button>
-
-              {/* Option 2: Anh Nam */}
-              <button
-                onClick={() => {
-                  loginAs('owner_nam');
-                  setShowLoginModal(false);
-                  router.push('/owner');
-                }}
-                className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl border border-slate-100 hover:border-blue-100 hover:bg-blue-50/20 transition-all text-left group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0075de] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <Users className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-slate-800">Chủ trọ (Anh Nam)</h4>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Quản lý 3 chung cư mini tại Hòa Lạc</p>
-                </div>
-              </button>
-
-              {/* Option 3: Chị Lan */}
-              <button
-                onClick={() => {
-                  loginAs('owner_lan');
-                  setShowLoginModal(false);
-                  router.push('/owner');
-                }}
-                className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl border border-slate-100 hover:border-blue-100 hover:bg-blue-50/20 transition-all text-left group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <Users className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-slate-800">Chủ trọ (Chị Lan)</h4>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Quản lý trọ sinh viên Bình Yên</p>
-                </div>
-              </button>
-            </div>
-            
-            <div className="text-center pt-2">
-              <span className="text-[10px] text-slate-400 font-semibold">
-                * Bạn cũng có thể đăng ký tài khoản mới bằng cách chọn "Đăng ký làm chủ trọ" ở menu.
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+        </div>      </div>
     </header>
   );
 }

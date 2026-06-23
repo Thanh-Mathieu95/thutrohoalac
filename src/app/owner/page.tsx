@@ -251,7 +251,7 @@ export default function OwnerDashboard() {
     loadModalImages();
   }, [showUploadForm]);
   useEffect(() => {
-    // Check URL parameters for OAuth errors
+    // Check URL parameters for OAuth errors and mode
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
       const error = searchParams.get('error');
@@ -260,6 +260,13 @@ export default function OwnerDashboard() {
         alert(`Đăng nhập Google thất bại: ${errorDescription || error}\n(Có thể do bạn chưa cấu hình hoặc cấu hình sai Google Auth Client ID/Secret trên Dashboard Supabase)`);
         const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
+      }
+
+      const mode = searchParams.get('mode');
+      if (mode === 'register') {
+        setAuthMode('register');
+      } else if (mode === 'login') {
+        setAuthMode('login');
       }
     }
 
