@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Danh sách Phòng Trọ | En House',
+  title: 'ENHOUSE',
   description: 'Tìm kiếm phòng trọ, chung cư mini, căn hộ dịch vụ tại khu vực Hòa Lạc với bộ lọc thông minh theo giá và diện tích.',
 };
 
