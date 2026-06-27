@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Thuê Trọ Hòa Lạc - Hệ thống tìm phòng trọ sinh viên",
+  title: "En House - Hệ thống tìm phòng trọ sinh viên",
   description: "Hệ thống quản lý và tìm kiếm phòng trọ chất lượng cao tại khu vực Hòa Lạc.",
 };
 
