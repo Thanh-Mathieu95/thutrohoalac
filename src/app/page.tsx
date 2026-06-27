@@ -7,7 +7,7 @@ import { RoomTypeCard } from '@/components/room-type-card';
 import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
 import { RoomType, BoardingHouse } from '@/lib/supabase';
-import { Map, RefreshCw, Search, ChevronDown, Building2, LayoutGrid, MapPin, Sparkles, Tag } from 'lucide-react';
+import { Map, RefreshCw, Search, ChevronDown, Building2, LayoutGrid, MapPin, Sparkles, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -429,6 +429,13 @@ function HomeContent() {
 
   const [isTyping, setIsTyping] = useState(false);
 
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchTerm, gender, area, amenities, price, roomTypeFilter]);
+
   useEffect(() => {
     setIsTyping(true);
     const timer = setTimeout(() => {
@@ -564,6 +571,20 @@ function HomeContent() {
 
   const hasActiveFilters = gender || area || amenities.length > 0 || price || roomTypeFilter || searchTerm;
 
+  const totalPages = activeTab === 'houses' 
+    ? Math.ceil(filteredHouses.length / ITEMS_PER_PAGE)
+    : Math.ceil(filteredRooms.length / ITEMS_PER_PAGE);
+
+  const paginatedHouses = filteredHouses.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const paginatedRooms = filteredRooms.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <main className="min-h-screen bg-[#f6f5f4] text-[#31302e] font-sans">
 
@@ -679,23 +700,60 @@ function HomeContent() {
                 ))}
               </div>
             ) : filteredHouses.length > 0 ? (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10 transition-all duration-200 ${isTyping ? 'opacity-45 blur-[0.5px]' : 'opacity-100'}`}>
-                {filteredHouses.map((house) => {
-                  const houseRts = getHouseRoomTypes(house.id);
-                  const priceFrom = houseRts.length > 0 ? Math.min(...houseRts.map(rt => rt.price_from)) : 0;
-                  const firstRoomId = houseRts.length > 0 ? houseRts[0].id : null;
-                  return (
-                    <BoardingHouseCard
-                      key={house.id}
-                      house={house}
-                      imageUrl={houseImages[house.id] || ''}
-                      roomCount={houseRts.length}
-                      priceFrom={priceFrom}
-                      firstRoomId={firstRoomId}
-                    />
-                  );
-                })}
-              </div>
+              <>
+                <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10 transition-all duration-200 ${isTyping ? 'opacity-45 blur-[0.5px]' : 'opacity-100'}`}>
+                  {paginatedHouses.map((house) => {
+                    const houseRts = getHouseRoomTypes(house.id);
+                    const priceFrom = houseRts.length > 0 ? Math.min(...houseRts.map(rt => rt.price_from)) : 0;
+                    const firstRoomId = houseRts.length > 0 ? houseRts[0].id : null;
+                    return (
+                      <BoardingHouseCard
+                        key={house.id}
+                        house={house}
+                        imageUrl={houseImages[house.id] || ''}
+                        roomCount={houseRts.length}
+                        priceFrom={priceFrom}
+                        firstRoomId={firstRoomId}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-12 flex justify-center items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer flex items-center justify-center text-slate-600"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-10 h-10 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center ${
+                          currentPage === pageNum
+                            ? 'bg-[#0075de] text-white shadow-md shadow-[#0075de]/20'
+                            : 'border border-slate-200 hover:bg-slate-50 text-slate-600'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer flex items-center justify-center text-slate-600"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <EmptyState onClear={clearFilters} label="nhà trọ" />
             )}
@@ -716,20 +774,57 @@ function HomeContent() {
                 ))}
               </div>
             ) : filteredRooms.length > 0 ? (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10 transition-all duration-200 ${isTyping ? 'opacity-45 blur-[0.5px]' : 'opacity-100'}`}>
-                {filteredRooms.map((rt) => {
-                  const house = boardingHouses.find(h => h.id === rt.boarding_house_id);
-                  if (!house) return null;
-                  return (
-                    <RoomTypeCard
-                      key={rt.id}
-                      roomType={rt}
-                      house={house}
-                      imageUrl={roomImages[rt.id] || ''}
-                    />
-                  );
-                })}
-              </div>
+              <>
+                <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10 transition-all duration-200 ${isTyping ? 'opacity-45 blur-[0.5px]' : 'opacity-100'}`}>
+                  {paginatedRooms.map((rt) => {
+                    const house = boardingHouses.find(h => h.id === rt.boarding_house_id);
+                    if (!house) return null;
+                    return (
+                      <RoomTypeCard
+                        key={rt.id}
+                        roomType={rt}
+                        house={house}
+                        imageUrl={roomImages[rt.id] || ''}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-12 flex justify-center items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer flex items-center justify-center text-slate-600"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-10 h-10 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center ${
+                          currentPage === pageNum
+                            ? 'bg-[#0075de] text-white shadow-md shadow-[#0075de]/20'
+                            : 'border border-slate-200 hover:bg-slate-50 text-slate-600'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer flex items-center justify-center text-slate-600"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <EmptyState onClear={clearFilters} label="kiểu phòng" />
             )}
